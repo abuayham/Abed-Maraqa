@@ -42,8 +42,7 @@ export const initialData: OrgNode = {
       children: [
         {
           id: 'vp-admin',
-          title: 'نائب رئيس الجامعة
-للشؤون الإدارية',
+          title: 'نائب رئيس الجامعة\\nللشؤون الإدارية',
           color: 'orange',
           position: { x: 1600, y: 500 },
           children: [
@@ -57,8 +56,7 @@ export const initialData: OrgNode = {
         },
         {
           id: 'vp-finance',
-          title: 'نائب رئيس الجامعة
-للشؤون المالية',
+          title: 'نائب رئيس الجامعة\\nللشؤون المالية',
           color: 'orange',
           position: { x: 1150, y: 500 },
           children: [
@@ -68,8 +66,7 @@ export const initialData: OrgNode = {
         },
         {
           id: 'vp-academic',
-          title: 'نائب رئيس الجامعة
-للشؤون الأكاديمية',
+          title: 'نائب رئيس الجامعة\\nللشؤون الأكاديمية',
           color: 'orange',
           position: { x: 200, y: 500 },
           children: [
@@ -108,8 +105,7 @@ export const initialData: OrgNode = {
         },
         {
           id: 'vp-gaza',
-          title: 'نائب رئيس الجامعة
-لشؤون قطاع غزة',
+          title: 'نائب رئيس الجامعة\\nلشؤون قطاع غزة',
           color: 'orange',
           position: { x: -1150, y: 500 },
           children: [
