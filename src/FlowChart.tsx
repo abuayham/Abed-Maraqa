@@ -50,13 +50,19 @@ const CustomNode = ({ data, isConnectable, selected }: any) => {
       }}
       className={`group relative inline-flex flex-col items-center justify-center w-[160px] min-h-[60px] px-3 py-2 font-semibold rounded-lg shadow-md border-2 whitespace-pre-wrap leading-snug select-none transition-transform ${selected ? 'ring-4 ring-blue-500 scale-105 z-50' : 'hover:-translate-y-1'}`}
     >
-      <Handle type="target" position={Position.Top} isConnectable={isConnectable} className="w-3 h-3 bg-blue-500" />
-      <Handle type="target" position={Position.Right} id="right" isConnectable={isConnectable} className="w-3 h-3 bg-green-500" />
+      <Handle type="target" position={Position.Top} id="t-top" isConnectable={isConnectable} className="w-2 h-2 opacity-0" />
+      <Handle type="source" position={Position.Top} id="s-top" isConnectable={isConnectable} className="w-2 h-2 opacity-0" />
+
+      <Handle type="target" position={Position.Bottom} id="t-bottom" isConnectable={isConnectable} className="w-2 h-2 opacity-0" />
+      <Handle type="source" position={Position.Bottom} id="s-bottom" isConnectable={isConnectable} className="w-2 h-2 opacity-0" />
+
+      <Handle type="target" position={Position.Left} id="t-left" isConnectable={isConnectable} className="w-2 h-2 opacity-0" />
+      <Handle type="source" position={Position.Left} id="s-left" isConnectable={isConnectable} className="w-2 h-2 opacity-0" />
+
+      <Handle type="target" position={Position.Right} id="t-right" isConnectable={isConnectable} className="w-2 h-2 opacity-0" />
+      <Handle type="source" position={Position.Right} id="s-right" isConnectable={isConnectable} className="w-2 h-2 opacity-0" />
       
       {data.title}
-
-      <Handle type="source" position={Position.Bottom} isConnectable={isConnectable} className="w-3 h-3 bg-red-500" />
-      <Handle type="source" position={Position.Left} id="left" isConnectable={isConnectable} className="w-3 h-3 bg-yellow-500" />
       
       {/* Quick Add Buttons (Show on hover or select) */}
       <div className="absolute -bottom-4 left-1/2 transform -translate-x-1/2 opacity-0 group-hover:opacity-100 transition-opacity plus-btn">
@@ -272,11 +278,33 @@ export default function FlowChart({ initialNodes, initialEdges, onSave, settings
     onSave(newNodes, newEdges);
   }, [nodes, edges, onSave]);
 
-  const edgesWithData = useMemo(() => edges.map(e => ({
-    ...e,
-    markerEnd: settings?.showArrows ? { type: MarkerType.ArrowClosed, color: 'var(--line-color, #374151)' } : undefined,
-    data: { ...e.data, onAddNodeOnEdge: handleAddNodeOnEdge }
-  })), [edges, handleAddNodeOnEdge, settings?.showArrows]);
+  const edgesWithData = useMemo(() => edges.map(e => {
+    let sh = e.sourceHandle || 's-bottom';
+    let th = e.targetHandle || 't-top';
+    const sourceNode = nodes.find(n => n.id === e.source);
+    const targetNode = nodes.find(n => n.id === e.target);
+    
+    if (sourceNode && targetNode) {
+      const dx = targetNode.position.x - sourceNode.position.x;
+      const dy = targetNode.position.y - sourceNode.position.y;
+      
+      if (Math.abs(dx) > Math.abs(dy)) {
+        if (dx > 0) { sh = 's-right'; th = 't-left'; }
+        else { sh = 's-left'; th = 't-right'; }
+      } else {
+        if (dy > 0) { sh = 's-bottom'; th = 't-top'; }
+        else { sh = 's-top'; th = 't-bottom'; }
+      }
+    }
+
+    return {
+      ...e,
+      sourceHandle: sh,
+      targetHandle: th,
+      markerEnd: settings?.showArrows ? { type: MarkerType.ArrowClosed, color: 'var(--line-color, #374151)' } : undefined,
+      data: { ...e.data, onAddNodeOnEdge: handleAddNodeOnEdge }
+    };
+  }), [edges, nodes, handleAddNodeOnEdge, settings?.showArrows]);
 
 
   const handleAddChild = useCallback((parentId: string, direction: 'bottom'|'right'|'left') => {
