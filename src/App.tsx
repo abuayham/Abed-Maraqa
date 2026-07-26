@@ -53,7 +53,7 @@ function App() {
     
     saveTimeout.current = setTimeout(() => {
       saveDataToDb(nodes, edges);
-    }, 1500);
+    }, 500);
 
     return () => clearTimeout(saveTimeout.current);
   }, [nodes, edges]);

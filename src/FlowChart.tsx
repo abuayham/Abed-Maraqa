@@ -327,6 +327,8 @@ export default function FlowChart({ initialNodes, initialEdges, onSave }: { init
           onNodesChange={onNodesChange}
           onEdgesChange={onEdgesChange}
           onConnect={onConnect}
+          onNodeClick={(_, node) => setEditingNode(node)}
+          onNodeDoubleClick={(_, node) => setEditingNode(node)}
           nodeTypes={nodeTypes}
           edgeTypes={edgeTypes}
           style={{ width: '100%', height: '100%' }}
@@ -365,14 +367,25 @@ export default function FlowChart({ initialNodes, initialEdges, onSave }: { init
                 ))}
               </div>
             </div>
-            <div className="flex justify-end gap-2">
-              <button onClick={() => setEditingNode(null)} className="px-4 py-2 text-sm border-2 border-gray-200 text-gray-600 rounded-xl hover:bg-gray-50 transition font-medium">إلغاء</button>
+            <div className="flex justify-between items-center mt-6">
               <button onClick={() => {
-                const newNodes = nodes.map(n => n.id === editingNode.id ? editingNode : n);
+                const newNodes = nodes.filter(n => n.id !== editingNode.id);
+                const newEdges = edges.filter(e => e.source !== editingNode.id && e.target !== editingNode.id);
                 setNodes(newNodes);
-                onSave(newNodes, edges);
+                setEdges(newEdges);
+                onSave(newNodes, newEdges);
                 setEditingNode(null);
-              }} className="px-5 py-2 text-sm bg-blue-600 text-white rounded-xl hover:bg-blue-700 transition flex items-center gap-2 font-semibold shadow"><Check size={15}/> حفظ التعديلات</button>
+              }} className="px-4 py-2 text-sm bg-red-50 text-red-600 rounded-xl hover:bg-red-100 transition font-medium flex items-center gap-1"><Trash2 size={15}/> حذف</button>
+              
+              <div className="flex gap-2">
+                <button onClick={() => setEditingNode(null)} className="px-4 py-2 text-sm border-2 border-gray-200 text-gray-600 rounded-xl hover:bg-gray-50 transition font-medium">إلغاء</button>
+                <button onClick={() => {
+                  const newNodes = nodes.map(n => n.id === editingNode.id ? editingNode : n);
+                  setNodes(newNodes);
+                  onSave(newNodes, edges);
+                  setEditingNode(null);
+                }} className="px-5 py-2 text-sm bg-blue-600 text-white rounded-xl hover:bg-blue-700 transition flex items-center gap-2 font-semibold shadow"><Check size={15}/> حفظ التعديلات</button>
+              </div>
             </div>
           </div>
         </div>
