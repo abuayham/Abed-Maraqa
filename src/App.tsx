@@ -1,5 +1,5 @@
 import { useState, useEffect, useRef } from 'react';
-import FlowChart, { getLayoutedElements } from './FlowChart';
+import FlowChart from './FlowChart';
 import type { OrgNode } from './data';
 import { Download, CheckCircle2, RefreshCw, ChevronDown, FileImage, Settings2, X, AlertTriangle } from 'lucide-react';
 import { supabase } from './supabase';
