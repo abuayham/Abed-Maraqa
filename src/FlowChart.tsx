@@ -90,7 +90,7 @@ const CustomNode = ({ data, isConnectable, selected }: any) => {
         textAlign: data.textAlign || 'center',
         fontSize: 'calc(12px + var(--font-size-offset, 0px))'
       }}
-      className={`relative inline-flex flex-col items-center justify-center w-[160px] min-h-[60px] px-3 py-2 font-semibold rounded-lg shadow-md border-2 whitespace-pre-wrap leading-snug select-none transition-transform ${selected ? 'ring-4 ring-blue-500 scale-105 z-50' : 'hover:-translate-y-1'}`}
+      className={`group relative inline-flex flex-col items-center justify-center w-[160px] min-h-[60px] px-3 py-2 font-semibold rounded-lg shadow-md border-2 whitespace-pre-wrap leading-snug select-none transition-transform ${selected ? 'ring-4 ring-blue-500 scale-105 z-50' : 'hover:-translate-y-1'}`}
     >
       <Handle type="target" position={Position.Top} isConnectable={isConnectable} className="w-3 h-3 bg-blue-500" />
       <Handle type="target" position={Position.Right} id="right" isConnectable={isConnectable} className="w-3 h-3 bg-green-500" />
@@ -99,6 +99,17 @@ const CustomNode = ({ data, isConnectable, selected }: any) => {
 
       <Handle type="source" position={Position.Bottom} isConnectable={isConnectable} className="w-3 h-3 bg-red-500" />
       <Handle type="source" position={Position.Left} id="left" isConnectable={isConnectable} className="w-3 h-3 bg-yellow-500" />
+      
+      {/* Quick Add Buttons (Show on hover or select) */}
+      <div className="absolute -bottom-4 left-1/2 transform -translate-x-1/2 opacity-0 group-hover:opacity-100 transition-opacity">
+        <button onClick={(e) => { e.stopPropagation(); data.onAddChild?.(data.id, 'bottom'); }} className="bg-blue-600 text-white w-5 h-5 rounded-full flex items-center justify-center text-xs shadow hover:scale-110 leading-none pb-0.5" title="إضافة تحت">+</button>
+      </div>
+      <div className="absolute top-1/2 -right-4 transform -translate-y-1/2 opacity-0 group-hover:opacity-100 transition-opacity">
+        <button onClick={(e) => { e.stopPropagation(); data.onAddChild?.(data.id, 'right'); }} className="bg-blue-600 text-white w-5 h-5 rounded-full flex items-center justify-center text-xs shadow hover:scale-110 leading-none pb-0.5" title="إضافة يمين">+</button>
+      </div>
+      <div className="absolute top-1/2 -left-4 transform -translate-y-1/2 opacity-0 group-hover:opacity-100 transition-opacity">
+        <button onClick={(e) => { e.stopPropagation(); data.onAddChild?.(data.id, 'left'); }} className="bg-blue-600 text-white w-5 h-5 rounded-full flex items-center justify-center text-xs shadow hover:scale-110 leading-none pb-0.5" title="إضافة يسار">+</button>
+      </div>
     </div>
   );
 };
@@ -224,6 +235,49 @@ export default function FlowChart({ initialNodes, initialEdges, onSave, settings
   })), [edges, handleAddNodeOnEdge, settings?.showArrows]);
 
 
+  const handleAddChild = useCallback((parentId: string, direction: 'bottom'|'right'|'left') => {
+    const parentNode = nodes.find(n => n.id === parentId);
+    if (!parentNode) return;
+
+    const newNodeId = `n${Date.now()}`;
+    const spacingX = 220;
+    const spacingY = 120;
+    
+    let nx = parentNode.position.x;
+    let ny = parentNode.position.y;
+    
+    if (direction === 'bottom') ny += spacingY;
+    if (direction === 'right') nx += spacingX;
+    if (direction === 'left') nx -= spacingX;
+
+    const newNode: Node = {
+      id: newNodeId,
+      type: 'orgNode',
+      position: { x: nx, y: ny },
+      data: { title: 'مسمى جديد', color: parentNode.data.color || 'blue-light' }
+    };
+    
+    const newEdge: Edge = {
+      id: `e-${parentId}-${newNodeId}`,
+      source: parentId,
+      target: newNodeId,
+      sourceHandle: direction === 'bottom' ? null : (direction === 'left' ? 'left' : null),
+      targetHandle: direction === 'bottom' ? null : (direction === 'right' ? 'right' : null),
+      type: 'orgEdge'
+    };
+
+    const newNodes = [...nodes, newNode];
+    const newEdges = [...edges, newEdge];
+    setNodes(newNodes);
+    setEdges(newEdges);
+    onSave(newNodes, newEdges);
+  }, [nodes, edges, onSave]);
+
+  const nodesWithData = useMemo(() => nodes.map(n => ({
+    ...n,
+    data: { ...n.data, id: n.id, onAddChild: handleAddChild }
+  })), [nodes, handleAddChild]);
+
   const handleAddStandalone = () => {
     const newNode: Node = {
       id: `n${Date.now()}`,
@@ -332,7 +386,7 @@ export default function FlowChart({ initialNodes, initialEdges, onSave, settings
 
       <div className={`flex-1 relative bg-gray-50/50 h-full w-full ${settings?.showArrows ? 'show-arrows' : ''}`} dir="ltr">
         <ReactFlow
-          nodes={nodes}
+          nodes={nodesWithData}
           edges={edgesWithData}
           onNodesChange={onNodesChange}
           onEdgesChange={onEdgesChange}
