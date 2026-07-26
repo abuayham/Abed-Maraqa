@@ -21,7 +21,8 @@ import type {
 } from '@xyflow/react';
 import '@xyflow/react/dist/style.css';
 import { Edit2, Plus, Trash2, X, Check } from 'lucide-react';
-import dagre from 'dagre';
+import * as dagreModule from 'dagre';
+const dagre: any = (dagreModule as any).default || dagreModule;
 
 const PALETTE = [
   { key: 'green-dark',   bg: '#2d6a4f', text: '#fff',    label: 'أخضر غامق' },
@@ -36,11 +37,17 @@ const getClr = (key: string) => PALETTE.find(c => c.key === key) ?? PALETTE[0];
 
 // ==================== LAYOUT ENGINE (DAGRE) ====================
 export const getLayoutedElements = (nodes: Node[], edges: Edge[], direction = 'TB') => {
-  const dagreGraph = new dagre.graphlib.Graph();
-  dagreGraph.setDefaultEdgeLabel(() => ({}));
-  
-  const isHorizontal = direction === 'LR';
-  dagreGraph.setGraph({ rankdir: direction, nodesep: 100, edgesep: 50, ranksep: 100 });
+  if (!dagre || !dagre.graphlib) {
+    console.warn("Dagre layout engine is not available. Falling back to simple layout.");
+    return { nodes, edges }; // Return as-is if dagre fails
+  }
+
+  try {
+    const dagreGraph = new dagre.graphlib.Graph();
+    dagreGraph.setDefaultEdgeLabel(() => ({}));
+    
+    const isHorizontal = direction === 'LR';
+    dagreGraph.setGraph({ rankdir: direction, nodesep: 100, edgesep: 50, ranksep: 100 });
 
   nodes.forEach((node) => {
     dagreGraph.setNode(node.id, { width: 160, height: 80 });
@@ -52,16 +59,19 @@ export const getLayoutedElements = (nodes: Node[], edges: Edge[], direction = 'T
 
   dagre.layout(dagreGraph);
 
-  nodes.forEach((node) => {
-    const nodeWithPosition = dagreGraph.node(node.id);
-    node.targetPosition = isHorizontal ? Position.Left : Position.Top;
-    node.sourcePosition = isHorizontal ? Position.Right : Position.Bottom;
-    node.position = {
-      x: nodeWithPosition.x - 160 / 2,
-      y: nodeWithPosition.y - 80 / 2,
-    };
-    return node;
-  });
+    nodes.forEach((node) => {
+      const nodeWithPosition = dagreGraph.node(node.id);
+      node.targetPosition = isHorizontal ? Position.Left : Position.Top;
+      node.sourcePosition = isHorizontal ? Position.Right : Position.Bottom;
+      node.position = {
+        x: nodeWithPosition.x - 160 / 2,
+        y: nodeWithPosition.y - 80 / 2,
+      };
+      return node;
+    });
+  } catch (err) {
+    console.error("Dagre layout failed", err);
+  }
 
   return { nodes, edges };
 };
