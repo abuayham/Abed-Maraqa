@@ -142,6 +142,15 @@ function App() {
       }
     } catch (err) {
       console.error('Unexpected error:', err);
+      // Fallback if completely failed
+      isInitialLoad.current = true;
+      try {
+        const { nodes: n, edges: e } = convertLegacyData(initialData);
+        setNodes(n);
+        setEdges(e);
+      } catch (e) {
+        console.error('Migration failed in catch block', e);
+      }
     } finally {
       setLoading(false);
     }

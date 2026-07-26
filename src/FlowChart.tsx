@@ -9,7 +9,7 @@ import {
   Position,
   Handle,
   BaseEdge,
-  getBezierPath,
+  getSmoothStepPath,
   EdgeLabelRenderer,
 } from '@xyflow/react';
 import type {
@@ -103,8 +103,8 @@ const CustomNode = ({ data, isConnectable, selected }: any) => {
 
 // ==================== CUSTOM EDGE (WITH ADD BUTTON) ====================
 const CustomEdge = ({ id, sourceX, sourceY, targetX, targetY, sourcePosition, targetPosition, style = {}, markerEnd, data }: any) => {
-  const [edgePath, labelX, labelY] = getBezierPath({
-    sourceX, sourceY, sourcePosition, targetX, targetY, targetPosition,
+  const [edgePath, labelX, labelY] = getSmoothStepPath({
+    sourceX, sourceY, sourcePosition, targetX, targetY, targetPosition, borderRadius: 0
   });
 
   return (
