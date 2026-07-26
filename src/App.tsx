@@ -1,19 +1,19 @@
 import { useState, useEffect, useRef } from 'react';
-import { OrgChart } from './OrgChart';
-import { initialData, type OrgNode } from './data';
-import { Download, CheckCircle2, RefreshCw, ChevronDown, FileImage, FileText, Table, Settings2, X } from 'lucide-react';
+import FlowChart, { getLayoutedElements } from './FlowChart';
+import type { OrgNode } from './data';
+import { Download, CheckCircle2, RefreshCw, ChevronDown, FileImage, Settings2, X, AlertTriangle } from 'lucide-react';
 import { supabase } from './supabase';
-import { exportToImage, exportToWord, exportToExcel } from './exportUtils';
+import { exportToImage } from './exportUtils';
+import type { Node, Edge } from '@xyflow/react';
 
 function App() {
-  const [data, setData] = useState<OrgNode>(initialData);
+  const [nodes, setNodes] = useState<Node[]>([]);
+  const [edges, setEdges] = useState<Edge[]>([]);
+  
   const [loading, setLoading] = useState(true);
   const [saveStatus, setSaveStatus] = useState<'saved' | 'saving' | 'error'>('saved');
   const [exportMenuOpen, setExportMenuOpen] = useState(false);
   const [settingsOpen, setSettingsOpen] = useState(false);
-  
-  const [history, setHistory] = useState<OrgNode[]>([]);
-  const [future, setFuture] = useState<OrgNode[]>([]);
   const [settings, setSettings] = useState({
     lineThickness: 2,
     lineColor: '#374151',
@@ -47,11 +47,44 @@ function App() {
     if (saveTimeout.current) clearTimeout(saveTimeout.current);
     
     saveTimeout.current = setTimeout(() => {
-      saveDataToDb(data);
+      saveDataToDb(nodes, edges);
     }, 1500);
 
     return () => clearTimeout(saveTimeout.current);
-  }, [data]);
+  }, [nodes, edges]);
+
+  const convertLegacyData = (orgNode: OrgNode) => {
+    const newNodes: Node[] = [];
+    const newEdges: Edge[] = [];
+    
+    const traverse = (node: OrgNode, parentId?: string, isRightStaff?: boolean, isLeftStaff?: boolean, isSibling?: boolean) => {
+      newNodes.push({
+        id: node.id,
+        type: 'orgNode',
+        position: { x: Math.random() * 200, y: Math.random() * 200 },
+        data: { title: node.title, color: node.color, textAlign: node.textAlign }
+      });
+      
+      if (parentId) {
+        newEdges.push({
+          id: `e-${parentId}-${node.id}`,
+          source: parentId,
+          target: node.id,
+          sourceHandle: isSibling ? 'left' : isRightStaff ? 'right' : (isLeftStaff ? 'left' : undefined),
+          type: 'orgEdge',
+          style: { strokeDasharray: node.lineStyle === 'dashed' ? '5,5' : 'none' },
+        });
+      }
+
+      node.children?.forEach(c => traverse(c, node.id));
+      node.rightStaff?.forEach(c => traverse(c, node.id, true));
+      node.leftStaff?.forEach(c => traverse(c, node.id, false, true));
+      if (node.leftSibling) traverse(node.leftSibling, node.id, false, false, true);
+    };
+    
+    traverse(orgNode);
+    return getLayoutedElements(newNodes, newEdges);
+  };
 
   const fetchData = async () => {
     setLoading(true);
@@ -66,7 +99,15 @@ function App() {
         console.error('Error fetching data:', error);
       } else if (orgData && orgData.data) {
         isInitialLoad.current = true;
-        setData(orgData.data);
+        if (orgData.data.nodes) {
+          setNodes(orgData.data.nodes);
+          setEdges(orgData.data.edges || []);
+        } else {
+          // Legacy conversion
+          const { nodes: n, edges: e } = convertLegacyData(orgData.data);
+          setNodes(n);
+          setEdges(e);
+        }
       }
     } catch (err) {
       console.error('Unexpected error:', err);
@@ -75,11 +116,11 @@ function App() {
     }
   };
 
-  const saveDataToDb = async (currentData: OrgNode) => {
+  const saveDataToDb = async (currNodes: Node[], currEdges: Edge[]) => {
     try {
       const { error } = await supabase
         .from('org_chart')
-        .upsert({ id: 1, data: currentData });
+        .upsert({ id: 1, data: { nodes: currNodes, edges: currEdges } });
       
       if (error) {
         setSaveStatus('error');
@@ -93,30 +134,13 @@ function App() {
     }
   };
 
-  const handleUpdateData = (newData: OrgNode) => {
-    setHistory(prev => [...prev, data]);
-    setFuture([]);
-    setData(newData);
-  };
-
-  const handleUndo = () => {
-    if (history.length === 0) return;
-    const previousState = history[history.length - 1];
-    setFuture(prev => [data, ...prev]);
-    setHistory(prev => prev.slice(0, -1));
-    setData(previousState);
-  };
-
-  const handleRedo = () => {
-    if (future.length === 0) return;
-    const nextState = future[0];
-    setHistory(prev => [...prev, data]);
-    setFuture(prev => prev.slice(1));
-    setData(nextState);
+  const handleUpdateData = (newNodes: Node[], newEdges: Edge[]) => {
+    setNodes(newNodes);
+    setEdges(newEdges);
   };
 
   const exportToJson = () => {
-    const dataStr = "data:text/json;charset=utf-8," + encodeURIComponent(JSON.stringify(data, null, 2));
+    const dataStr = "data:text/json;charset=utf-8," + encodeURIComponent(JSON.stringify({ nodes, edges }, null, 2));
     const downloadAnchorNode = document.createElement('a');
     downloadAnchorNode.setAttribute("href", dataStr);
     downloadAnchorNode.setAttribute("download", "org-chart-data.json");
@@ -151,9 +175,8 @@ function App() {
         </div>
         
         <div className="flex gap-3 relative">
-          <div className="flex bg-gray-100 rounded-lg p-1">
-            <button onClick={handleUndo} disabled={history.length === 0} className="p-1.5 text-gray-600 rounded hover:bg-white disabled:opacity-30 transition" title="تراجع"><svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M3 7v6h6"/><path d="M21 17a9 9 0 0 0-9-9 9 9 0 0 0-6 2.3L3 13"/></svg></button>
-            <button onClick={handleRedo} disabled={future.length === 0} className="p-1.5 text-gray-600 rounded hover:bg-white disabled:opacity-30 transition" title="إعادة"><svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M21 7v6h-6"/><path d="M3 17a9 9 0 0 1 9-9 9 9 0 0 1 6 2.3l3 2.7"/></svg></button>
+          <div className="flex bg-orange-100 text-orange-700 rounded-lg p-1.5 px-3 items-center gap-2 text-sm font-bold shadow-sm border border-orange-200">
+            <AlertTriangle size={16}/> وضع الرسم الحر التفاعلي
           </div>
           
           <button 
@@ -183,8 +206,6 @@ function App() {
             {exportMenuOpen && (
               <div className="absolute top-full left-0 mt-2 w-48 bg-white border border-gray-100 rounded-xl shadow-xl overflow-hidden py-1 z-50">
                 <button onClick={() => { exportToImage('org-chart-container'); setExportMenuOpen(false); }} className="w-full text-right px-4 py-2.5 text-sm hover:bg-gray-50 flex items-center gap-3"><FileImage size={16} className="text-blue-500"/> صورة (PNG)</button>
-                <button onClick={() => { exportToWord(data); setExportMenuOpen(false); }} className="w-full text-right px-4 py-2.5 text-sm hover:bg-gray-50 flex items-center gap-3"><FileText size={16} className="text-blue-700"/> ملف Word</button>
-                <button onClick={() => { exportToExcel(data); setExportMenuOpen(false); }} className="w-full text-right px-4 py-2.5 text-sm hover:bg-gray-50 flex items-center gap-3"><Table size={16} className="text-green-600"/> ملف Excel</button>
                 <div className="h-px bg-gray-100 my-1"/>
                 <button onClick={exportToJson} className="w-full text-right px-4 py-2.5 text-sm hover:bg-gray-50 text-gray-600">نسخة احتياطية (JSON)</button>
               </div>
@@ -194,11 +215,11 @@ function App() {
       </header>
       
       <main className="flex-1 w-full overflow-auto relative" onClick={() => setExportMenuOpen(false)}>
-        <div id="org-chart-container" className="min-w-max p-8 bg-[#f8f9fa] org-chart-wrapper">
+        <div id="org-chart-container" className="w-full h-full org-chart-wrapper">
            {loading ? (
-             <div className="flex justify-center items-center h-64 text-gray-500">جاري التحميل...</div>
+             <div className="flex justify-center items-center h-full text-gray-500">جاري التحميل...</div>
            ) : (
-             <OrgChart data={data} onUpdate={handleUpdateData} />
+             <FlowChart initialNodes={nodes} initialEdges={edges} onSave={handleUpdateData} />
            )}
         </div>
       </main>
