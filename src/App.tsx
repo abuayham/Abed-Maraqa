@@ -166,11 +166,11 @@ function App() {
         .upsert({ id: 1, data: { nodes: currNodes, edges: currEdges } });
       
       if (error) {
-        setSaveStatus(`error: ${error.message || JSON.stringify(error)}`);
-        console.error(error);
-      } else {
-        setSaveStatus('saved');
+        console.error('Save error details:', error);
+        throw new Error(`[${import.meta.env.VITE_SUPABASE_URL}] ${error.message || JSON.stringify(error)}`);
       }
+      
+      setSaveStatus('saved');
     } catch (err: any) {
       console.error(err);
       setSaveStatus(`error: ${err.message || 'Unknown error'}`);
