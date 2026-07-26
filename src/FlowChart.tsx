@@ -88,7 +88,7 @@ const CustomNode = ({ data, isConnectable, selected }: any) => {
         borderColor: selected ? '#3b82f6' : 'rgba(255,255,255,0.5)',
         textAlign: data.textAlign || 'center'
       }}
-      className={`relative inline-flex flex-col items-center justify-center min-w-[130px] max-w-[180px] text-[12px] px-3 py-2 font-semibold rounded-lg shadow-md border-2 whitespace-pre-wrap leading-snug select-none transition-transform ${selected ? 'ring-4 ring-blue-500 scale-105 z-50' : 'hover:-translate-y-1'}`}
+      className={`relative inline-flex flex-col items-center justify-center w-[160px] min-h-[60px] text-[12px] px-3 py-2 font-semibold rounded-lg shadow-md border-2 whitespace-pre-wrap leading-snug select-none transition-transform ${selected ? 'ring-4 ring-blue-500 scale-105 z-50' : 'hover:-translate-y-1'}`}
     >
       <Handle type="target" position={Position.Top} isConnectable={isConnectable} className="w-3 h-3 bg-blue-500" />
       <Handle type="target" position={Position.Right} id="right" isConnectable={isConnectable} className="w-3 h-3 bg-green-500" />
