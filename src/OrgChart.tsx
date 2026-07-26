@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import { useState } from 'react';
 import { Edit2, Plus, Trash2, X, Check } from 'lucide-react';
 import type { OrgNode } from './data';
 
