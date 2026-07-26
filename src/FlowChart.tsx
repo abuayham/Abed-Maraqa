@@ -256,7 +256,7 @@ export default function FlowChart({ initialNodes, initialEdges, onSave }: { init
   };
 
   return (
-    <div className="w-full h-full min-h-[700px] flex">
+    <div className="absolute inset-0 flex">
       <div className="w-64 bg-white shadow-xl border-r p-4 flex flex-col gap-4 z-10 relative">
         <h3 className="font-bold text-gray-800 text-lg border-b pb-2">أدوات الرسم الحر</h3>
         
@@ -320,7 +320,7 @@ export default function FlowChart({ initialNodes, initialEdges, onSave }: { init
         </div>
       </div>
 
-      <div className="flex-1 h-full relative" dir="ltr">
+      <div className="flex-1 relative bg-gray-50/50 h-full w-full" dir="ltr">
         <ReactFlow
           nodes={nodes}
           edges={edgesWithData}
@@ -329,6 +329,7 @@ export default function FlowChart({ initialNodes, initialEdges, onSave }: { init
           onConnect={onConnect}
           nodeTypes={nodeTypes}
           edgeTypes={edgeTypes}
+          style={{ width: '100%', height: '100%' }}
           fitView
           defaultEdgeOptions={{ type: 'orgEdge', style: { strokeWidth: 2, stroke: '#374151' } }}
         >
