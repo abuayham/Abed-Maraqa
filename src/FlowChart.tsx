@@ -12,6 +12,7 @@ import {
   getSmoothStepPath,
   EdgeLabelRenderer,
   MarkerType,
+  reconnectEdge,
 } from '@xyflow/react';
 import type {
   Node,
@@ -21,9 +22,7 @@ import type {
   Connection,
 } from '@xyflow/react';
 import '@xyflow/react/dist/style.css';
-import { Edit2, Plus, Trash2, X, Check } from 'lucide-react';
-import * as dagreModule from 'dagre';
-const dagre: any = (dagreModule as any).default || dagreModule;
+import { Edit2, Plus, Trash2, X, Check, Undo2, Redo2 } from 'lucide-react';
 
 const PALETTE = [
   { key: 'green-dark',   bg: '#2d6a4f', text: '#fff',    label: 'أخضر غامق' },
@@ -35,47 +34,6 @@ const PALETTE = [
   { key: 'teal',         bg: '#2a9d8f', text: '#fff',    label: 'أخضر زيتوني' },
 ];
 const getClr = (key: string) => PALETTE.find(c => c.key === key) ?? PALETTE[0];
-
-// ==================== LAYOUT ENGINE (DAGRE) ====================
-export const getLayoutedElements = (nodes: Node[], edges: Edge[], direction = 'TB') => {
-  if (!dagre || !dagre.graphlib) {
-    console.warn("Dagre layout engine is not available. Falling back to simple layout.");
-    return { nodes, edges }; // Return as-is if dagre fails
-  }
-
-  try {
-    const dagreGraph = new dagre.graphlib.Graph();
-    dagreGraph.setDefaultEdgeLabel(() => ({}));
-    
-    const isHorizontal = direction === 'LR';
-    dagreGraph.setGraph({ rankdir: direction, nodesep: 100, edgesep: 50, ranksep: 100 });
-
-  nodes.forEach((node) => {
-    dagreGraph.setNode(node.id, { width: 160, height: 80 });
-  });
-
-  edges.forEach((edge) => {
-    dagreGraph.setEdge(edge.source, edge.target);
-  });
-
-  dagre.layout(dagreGraph);
-
-    nodes.forEach((node) => {
-      const nodeWithPosition = dagreGraph.node(node.id);
-      node.targetPosition = isHorizontal ? Position.Left : Position.Top;
-      node.sourcePosition = isHorizontal ? Position.Right : Position.Bottom;
-      node.position = {
-        x: nodeWithPosition.x - 160 / 2,
-        y: nodeWithPosition.y - 80 / 2,
-      };
-      return node;
-    });
-  } catch (err) {
-    console.error("Dagre layout failed", err);
-  }
-
-  return { nodes, edges };
-};
 
 // ==================== CUSTOM NODE ====================
 const CustomNode = ({ data, isConnectable, selected }: any) => {
@@ -151,7 +109,36 @@ export default function FlowChart({ initialNodes, initialEdges, onSave, settings
   const [edges, setEdges] = useState<Edge[]>(initialEdges);
   const [editingNode, setEditingNode] = useState<Node | null>(null);
 
+  const [past, setPast] = useState<{nodes: Node[], edges: Edge[]}[]>([]);
+  const [future, setFuture] = useState<{nodes: Node[], edges: Edge[]}[]>([]);
+
+  const takeSnapshot = useCallback(() => {
+    setPast((p) => [...p.slice(-15), { nodes, edges }]);
+    setFuture([]);
+  }, [nodes, edges]);
+
+  const undo = useCallback(() => {
+    if (past.length === 0) return;
+    const previous = past[past.length - 1];
+    setFuture((f) => [{ nodes, edges }, ...f]);
+    setPast((p) => p.slice(0, -1));
+    setNodes(previous.nodes);
+    setEdges(previous.edges);
+    onSave(previous.nodes, previous.edges);
+  }, [past, nodes, edges, onSave]);
+
+  const redo = useCallback(() => {
+    if (future.length === 0) return;
+    const next = future[0];
+    setPast((p) => [...p, { nodes, edges }]);
+    setFuture((f) => f.slice(1));
+    setNodes(next.nodes);
+    setEdges(next.edges);
+    onSave(next.nodes, next.edges);
+  }, [future, nodes, edges, onSave]);
+
   const updateEditingNode = (updatedNode: Node) => {
+    takeSnapshot();
     setEditingNode(updatedNode);
     const newNodes = nodes.map(n => n.id === updatedNode.id ? updatedNode : n);
     setNodes(newNodes);
@@ -184,6 +171,7 @@ export default function FlowChart({ initialNodes, initialEdges, onSave, settings
 
   const onConnect = useCallback(
     (params: Connection | Edge) => {
+      takeSnapshot();
       const newEdge = { ...params, type: 'orgEdge', id: `e${Date.now()}` };
       const newEdges = addEdge(newEdge as any, edges);
       setEdges(newEdges);
@@ -196,6 +184,7 @@ export default function FlowChart({ initialNodes, initialEdges, onSave, settings
     const edge = edges.find(e => e.id === edgeId);
     if (!edge) return;
     
+    takeSnapshot();
     const newNodeId = `n${Date.now()}`;
     const newNode: Node = {
       id: newNodeId,
@@ -239,6 +228,7 @@ export default function FlowChart({ initialNodes, initialEdges, onSave, settings
     const parentNode = nodes.find(n => n.id === parentId);
     if (!parentNode) return;
 
+    takeSnapshot();
     const newNodeId = `n${Date.now()}`;
     const spacingX = 220;
     const spacingY = 120;
@@ -279,6 +269,7 @@ export default function FlowChart({ initialNodes, initialEdges, onSave, settings
   })), [nodes, handleAddChild]);
 
   const handleAddStandalone = () => {
+    takeSnapshot();
     const newNode: Node = {
       id: `n${Date.now()}`,
       type: 'orgNode',
@@ -290,12 +281,7 @@ export default function FlowChart({ initialNodes, initialEdges, onSave, settings
     onSave(newNodes, edges);
   };
 
-  const handleAutoLayout = () => {
-    const { nodes: layoutedNodes, edges: layoutedEdges } = getLayoutedElements(nodes, edges);
-    setNodes([...layoutedNodes]);
-    setEdges([...layoutedEdges]);
-    onSave([...layoutedNodes], [...layoutedEdges]);
-  };
+
 
   const selectedNode = nodes.find(n => n.selected);
   const selectedEdge = edges.find(e => e.selected);
@@ -303,6 +289,7 @@ export default function FlowChart({ initialNodes, initialEdges, onSave, settings
   const handleDeleteSelected = () => {
     if (!selectedNode && !selectedEdge) return;
     if (confirm('هل أنت متأكد من حذف العنصر المحدد؟')) {
+      takeSnapshot();
       let newNodes = nodes;
       let newEdges = edges;
       
@@ -328,9 +315,14 @@ export default function FlowChart({ initialNodes, initialEdges, onSave, settings
           <Plus size={16}/> إضافة مستطيل حر
         </button>
         
-        <button onClick={handleAutoLayout} className="w-full py-2 border-2 border-gray-200 text-gray-700 rounded-xl hover:bg-gray-50 font-medium">
-          ✨ ترتيب تلقائي (شجري)
-        </button>
+        <div className="flex gap-2">
+          <button onClick={undo} disabled={past.length === 0} className={`flex-1 py-2 border-2 rounded-xl font-medium flex items-center justify-center gap-1 ${past.length > 0 ? 'border-gray-200 text-gray-700 hover:bg-gray-50' : 'border-gray-100 text-gray-400 bg-gray-50 cursor-not-allowed'}`}>
+            <Undo2 size={16}/> تراجع
+          </button>
+          <button onClick={redo} disabled={future.length === 0} className={`flex-1 py-2 border-2 rounded-xl font-medium flex items-center justify-center gap-1 ${future.length > 0 ? 'border-gray-200 text-gray-700 hover:bg-gray-50' : 'border-gray-100 text-gray-400 bg-gray-50 cursor-not-allowed'}`}>
+            <Redo2 size={16}/> إعادة
+          </button>
+        </div>
         
         <hr className="my-2"/>
 
@@ -357,6 +349,7 @@ export default function FlowChart({ initialNodes, initialEdges, onSave, settings
               <label className="flex flex-col gap-1 text-gray-700">
                 نوع الخط:
                 <select className="p-1 rounded border" value={selectedEdge.style?.strokeDasharray ? 'dashed' : 'solid'} onChange={e => {
+                  takeSnapshot();
                   const isDashed = e.target.value === 'dashed';
                   const newEdges = edges.map(edge => edge.id === selectedEdge.id ? { 
                     ...edge, 
@@ -391,6 +384,13 @@ export default function FlowChart({ initialNodes, initialEdges, onSave, settings
           onNodesChange={onNodesChange}
           onEdgesChange={onEdgesChange}
           onConnect={onConnect}
+          onReconnect={(oldEdge, newConnection) => {
+            takeSnapshot();
+            const newEdges = reconnectEdge(oldEdge as Edge, newConnection, edges) as Edge[];
+            setEdges(newEdges);
+            onSave(nodes, newEdges);
+          }}
+          onNodeDragStart={takeSnapshot}
           onNodeClick={(_, node) => setEditingNode(node)}
           onNodeDoubleClick={(_, node) => setEditingNode(node)}
           nodeTypes={nodeTypes}
@@ -433,6 +433,7 @@ export default function FlowChart({ initialNodes, initialEdges, onSave, settings
             </div>
             <div className="flex justify-between items-center mt-6">
               <button onClick={() => {
+                takeSnapshot();
                 const newNodes = nodes.filter(n => n.id !== editingNode.id);
                 const newEdges = edges.filter(e => e.source !== editingNode.id && e.target !== editingNode.id);
                 setNodes(newNodes);
