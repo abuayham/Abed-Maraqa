@@ -153,13 +153,66 @@ export default function FlowChart({ initialNodes, initialEdges, onSave, settings
     orgEdge: CustomEdge,
   }), []);
 
+  const getDescendants = useCallback((parentId: string, currentEdges: Edge[]): string[] => {
+    const desc = new Set<string>();
+    const queue = [parentId];
+    while (queue.length > 0) {
+      const curr = queue.shift()!;
+      currentEdges.filter(e => e.source === curr).forEach(e => {
+        if (!desc.has(e.target)) {
+          desc.add(e.target);
+          queue.push(e.target);
+        }
+      });
+    }
+    return Array.from(desc);
+  }, []);
+
   const onNodesChange = useCallback(
     (changes: NodeChange[]) => {
-      const newNodes = applyNodeChanges(changes, nodes);
+      let allChanges = [...changes];
+      const positionChanges = changes.filter(c => c.type === 'position' && (c as any).dragging && (c as any).position) as any[];
+
+      if (positionChanges.length > 0) {
+        const extraChanges: NodeChange[] = [];
+        const processedDescendants = new Set<string>();
+
+        positionChanges.forEach(change => {
+          const originalNode = nodes.find(n => n.id === change.id);
+          if (originalNode && originalNode.position) {
+            const dx = change.position.x - originalNode.position.x;
+            const dy = change.position.y - originalNode.position.y;
+
+            if (dx !== 0 || dy !== 0) {
+              const descendants = getDescendants(change.id, edges);
+              descendants.forEach(descId => {
+                if (!processedDescendants.has(descId) && !changes.some(c => c.type === 'position' && (c as any).id === descId)) {
+                  processedDescendants.add(descId);
+                  const descNode = nodes.find(n => n.id === descId);
+                  if (descNode) {
+                    extraChanges.push({
+                      type: 'position',
+                      id: descId,
+                      position: {
+                        x: descNode.position.x + dx,
+                        y: descNode.position.y + dy,
+                      },
+                      dragging: true,
+                    } as any);
+                  }
+                }
+              });
+            }
+          }
+        });
+        allChanges = [...changes, ...extraChanges];
+      }
+
+      const newNodes = applyNodeChanges(allChanges, nodes);
       setNodes(newNodes);
       onSave(newNodes, edges);
     },
-    [nodes, edges, onSave]
+    [nodes, edges, onSave, getDescendants]
   );
 
   const onEdgesChange = useCallback(
