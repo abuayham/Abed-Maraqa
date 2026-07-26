@@ -1,0 +1,90 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@layer base {
+  html, body, #root {
+    height: 100%;
+    font-family: 'Segoe UI', Tahoma, sans-serif;
+  }
+}
+
+/* ===== ORG TREE CSS ===== */
+/* LTR-based layout for correct tree rendering */
+.org-ul {
+  display: flex;
+  padding-top: 28px;
+  position: relative;
+  list-style: none;
+  margin: 0;
+  padding-inline-start: 0;
+}
+
+/* Vertical stem from parent to the horizontal bar */
+.org-ul::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 50%;
+  transform: translateX(-1px);
+  width: 2px;
+  height: 28px;
+  background: #374151;
+}
+
+.org-li {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  position: relative;
+  padding: 28px 8px 0;
+  list-style: none;
+}
+
+/* Horizontal bar segments - drawn as top border + side borders */
+.org-li::before,
+.org-li::after {
+  content: '';
+  position: absolute;
+  top: 0;
+  height: 28px;
+  width: 50%;
+  box-sizing: border-box;
+}
+
+.org-li::before {
+  right: 50%;
+  border-top: 2px solid #374151;
+}
+
+.org-li::after {
+  left: 50%;
+  border-top: 2px solid #374151;
+  border-left: 2px solid #374151;
+}
+
+/* Only child - no connector needed */
+.org-li:only-child {
+  padding-top: 0;
+}
+.org-li:only-child::before,
+.org-li:only-child::after {
+  display: none;
+}
+
+/* First child: remove the left outgoing segment */
+.org-li:first-child::before {
+  display: none;
+}
+.org-li:first-child::after {
+  border-radius: 5px 0 0 0;
+}
+
+/* Last child: remove the right outgoing segment */
+.org-li:last-child::after {
+  display: none;
+}
+.org-li:last-child::before {
+  border-right: 2px solid #374151;
+  border-radius: 0 5px 0 0;
+}
