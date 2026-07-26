@@ -5,6 +5,7 @@ import { Download, CheckCircle2, RefreshCw, ChevronDown, FileImage, Settings2, X
 import { supabase } from './supabase';
 import { exportToImage } from './exportUtils';
 import type { Node, Edge } from '@xyflow/react';
+import { initialData } from './data';
 
 const DEFAULT_NODES: Node[] = [
   { id: 'root', type: 'orgNode', position: { x: 300, y: 100 }, data: { title: 'رئيس الجامعة', color: 'green-dark' } }
@@ -101,6 +102,15 @@ function App() {
       
       if (error) {
         console.error('Error fetching data:', error);
+        // Fallback to initialData from data.ts if db is empty
+        isInitialLoad.current = true;
+        try {
+          const { nodes: n, edges: e } = convertLegacyData(initialData);
+          setNodes(n);
+          setEdges(e);
+        } catch (e) {
+          console.error('Migration of initialData failed', e);
+        }
       } else if (orgData && orgData.data) {
         isInitialLoad.current = true;
         if (orgData.data.nodes && orgData.data.nodes.length > 0) {
@@ -117,7 +127,18 @@ function App() {
           } catch (e) {
             console.error('Migration failed', e);
           }
+        } else {
+          // DB has an empty object or invalid data
+          const { nodes: n, edges: e } = convertLegacyData(initialData);
+          setNodes(n);
+          setEdges(e);
         }
+      } else {
+        // Fallback if no orgData
+        isInitialLoad.current = true;
+        const { nodes: n, edges: e } = convertLegacyData(initialData);
+        setNodes(n);
+        setEdges(e);
       }
     } catch (err) {
       console.error('Unexpected error:', err);
