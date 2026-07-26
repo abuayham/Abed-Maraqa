@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react';
-import { Edit2, Plus, Trash2, X, Check } from 'lucide-react';
+import { Edit2, Trash2, X, Check } from 'lucide-react';
 import type { OrgNode } from './data';
 
 // ==================== COLOR PALETTE ====================
@@ -16,7 +16,7 @@ const getClr = (key: string) => PALETTE.find(c => c.key === key) ?? PALETTE[0];
 
 interface Actions {
   onEdit: (n: OrgNode) => void;
-  onAddChild: (id: string) => void;
+  onAdd: (id: string, placement: 'child' | 'leftStaff' | 'rightStaff') => void;
   onDelete: (id: string) => void;
   onMove: (draggedId: string, targetId: string, placement: 'child' | 'leftStaff' | 'rightStaff') => void;
 }
@@ -81,13 +81,23 @@ function NodeBox({ node, actions, size = 'md', isActive, onToggleMenu }: { node:
         }`} />
       )}
 
+      {node.showArrow && (
+        <div style={{ position: 'absolute', top: -6, left: '50%', transform: 'translateX(-50%)', borderStyle: 'solid', borderWidth: '6px 4px 0 4px', borderColor: 'var(--line-color, #374151) transparent transparent transparent' }} />
+      )}
+
       {isActive && (
-        <div className="absolute -top-10 left-1/2 -translate-x-1/2 flex gap-0.5 bg-white px-1.5 py-1.5 rounded-xl shadow-2xl border border-gray-100 z-[100] whitespace-nowrap" onClick={e => e.stopPropagation()}>
-          <button onClick={() => actions.onEdit(node)} className="flex items-center gap-1 px-2 py-1 text-[11px] text-blue-600 hover:bg-blue-50 rounded-lg font-medium transition"><Edit2 size={12}/> تعديل</button>
-          <div className="w-px bg-gray-200 mx-0.5"/>
-          <button onClick={() => actions.onAddChild(node.id)} className="flex items-center gap-1 px-2 py-1 text-[11px] text-green-600 hover:bg-green-50 rounded-lg font-medium transition"><Plus size={12}/> إضافة</button>
-          <div className="w-px bg-gray-200 mx-0.5"/>
-          <button onClick={() => actions.onDelete(node.id)} className="flex items-center gap-1 px-2 py-1 text-[11px] text-red-600 hover:bg-red-50 rounded-lg font-medium transition"><Trash2 size={12}/> حذف</button>
+        <div className="absolute -top-16 left-1/2 -translate-x-1/2 flex flex-col gap-1 bg-white p-2 rounded-xl shadow-2xl border border-gray-100 z-[100] whitespace-nowrap" onClick={e => e.stopPropagation()}>
+          <div className="flex gap-1 border-b pb-1 mb-1">
+            <button onClick={() => actions.onEdit(node)} className="flex-1 flex items-center justify-center gap-1 px-2 py-1 text-[11px] text-blue-600 hover:bg-blue-50 rounded-lg font-medium transition"><Edit2 size={12}/> تعديل</button>
+            <div className="w-px bg-gray-200 mx-0.5"/>
+            <button onClick={() => actions.onDelete(node.id)} className="flex-1 flex items-center justify-center gap-1 px-2 py-1 text-[11px] text-red-600 hover:bg-red-50 rounded-lg font-medium transition"><Trash2 size={12}/> حذف</button>
+          </div>
+          <div className="flex gap-1 justify-center text-[10px] text-gray-500 font-bold px-1 mb-0.5">إضافة ارتباط:</div>
+          <div className="flex gap-1">
+            <button onClick={() => actions.onAdd(node.id, 'rightStaff')} className="flex flex-col items-center gap-1 px-3 py-1 text-[10px] text-green-600 hover:bg-green-50 rounded-lg transition border border-transparent hover:border-green-100" title="مساعد أيمن"><div className="w-3 h-0.5 bg-green-500"/> يمين</button>
+            <button onClick={() => actions.onAdd(node.id, 'child')} className="flex flex-col items-center gap-1 px-3 py-1 text-[10px] text-green-600 hover:bg-green-50 rounded-lg transition border border-transparent hover:border-green-100" title="فرع سفلي"><div className="w-0.5 h-3 bg-green-500"/> أسفل</button>
+            <button onClick={() => actions.onAdd(node.id, 'leftStaff')} className="flex flex-col items-center gap-1 px-3 py-1 text-[10px] text-green-600 hover:bg-green-50 rounded-lg transition border border-transparent hover:border-green-100" title="مساعد أيسر"><div className="w-3 h-0.5 bg-green-500"/> يسار</button>
+          </div>
         </div>
       )}
     </div>
@@ -98,7 +108,7 @@ function NodeBox({ node, actions, size = 'md', isActive, onToggleMenu }: { node:
 function TreeNode({ node, actions, activeMenuId, setActiveMenuId }: { node: OrgNode; actions: Actions; activeMenuId: string | null; setActiveMenuId: (id: string | null) => void }) {
   const hasChildren = (node.children?.length ?? 0) > 0;
   return (
-    <li className="org-li">
+    <li className="org-li" style={{ '--node-line-style': node.lineStyle || 'solid' } as any}>
       <NodeBox node={node} actions={actions} size="md" isActive={activeMenuId === node.id} onToggleMenu={(e) => { e.stopPropagation(); setActiveMenuId(node.id); }} />
       {hasChildren && (
         <ul className="org-ul">
@@ -139,7 +149,7 @@ function PresidentSection({ root, president, actions, activeMenuId, setActiveMen
         <div style={{ position: 'relative', width: 'var(--line-thickness, 2px)', height: trunkH, background: 'var(--line-color, #374151)', flexShrink: 0 }}>
           {president.rightStaff?.map((staff, idx) => (
             <div key={staff.id} style={{ position: 'absolute', top: 12 + idx * (STAFF_H + STAFF_GAP), left: 'var(--line-thickness, 2px)', display: 'flex', alignItems: 'center' }}>
-              <div style={{ width: HLINE, height: 'var(--line-thickness, 2px)', background: 'var(--line-color, #374151)', flexShrink: 0 }} />
+              <div style={{ width: HLINE, height: 'var(--line-thickness, 2px)', borderTop: staff.lineStyle === 'dashed' ? 'var(--line-thickness, 2px) dashed var(--line-color, #374151)' : 'none', background: staff.lineStyle === 'dashed' ? 'transparent' : 'var(--line-color, #374151)', flexShrink: 0 }} />
               <NodeBox node={staff} actions={actions} isActive={activeMenuId === staff.id} onToggleMenu={(e) => { e.stopPropagation(); setActiveMenuId(staff.id); }} />
             </div>
           ))}
@@ -158,7 +168,7 @@ function PresidentSection({ root, president, actions, activeMenuId, setActiveMen
       {president.leftStaff?.map((staff, idx) => (
         <div key={staff.id} style={{ position: 'absolute', top: trunkTop + 12 + idx * (STAFF_H + STAFF_GAP), right: `calc(50% + var(--line-thickness, 2px))`, display: 'flex', alignItems: 'center' }}>
           <NodeBox node={staff} actions={actions} isActive={activeMenuId === staff.id} onToggleMenu={(e) => { e.stopPropagation(); setActiveMenuId(staff.id); }} />
-          <div style={{ width: HLINE, height: 'var(--line-thickness, 2px)', background: 'var(--line-color, #374151)', flexShrink: 0 }} />
+          <div style={{ width: HLINE, height: 'var(--line-thickness, 2px)', borderTop: staff.lineStyle === 'dashed' ? 'var(--line-thickness, 2px) dashed var(--line-color, #374151)' : 'none', background: staff.lineStyle === 'dashed' ? 'transparent' : 'var(--line-color, #374151)', flexShrink: 0 }} />
         </div>
       ))}
     </div>
@@ -196,7 +206,7 @@ export function OrgChart({ data, onUpdate }: { data: OrgNode; onUpdate: (d: OrgN
 
   const handleEdit   = (node: OrgNode) => setEditingNode({ ...node });
   const handleSave   = () => { if (!editingNode) return; onUpdate(walkUpdate(data, editingNode.id, editingNode)); setEditingNode(null); };
-  const handleAdd    = (parentId: string) => onUpdate(walkAdd(data, parentId, { id: `n${Date.now()}`, title: 'مسمى جديد', color: 'blue-light' }));
+  const handleAdd    = (parentId: string, placement: 'child' | 'leftStaff' | 'rightStaff') => onUpdate(walkAdd(data, parentId, { id: `n${Date.now()}`, title: 'مسمى جديد', color: 'blue-light' }, placement));
   const handleDelete = (id: string) => {
     if (id === data.id) return alert('لا يمكن حذف العنصر الجذري');
     if (!confirm('هل تريد حذف هذا العنصر وجميع فروعه؟')) return;
@@ -237,7 +247,7 @@ export function OrgChart({ data, onUpdate }: { data: OrgNode; onUpdate: (d: OrgN
     }
   };
 
-  const actions: Actions = { onEdit: handleEdit, onAddChild: handleAdd, onDelete: handleDelete, onMove: handleMove };
+  const actions: Actions = { onEdit: handleEdit, onAdd: handleAdd, onDelete: handleDelete, onMove: handleMove };
   const president = data.children?.[0];
 
   return (
@@ -276,6 +286,22 @@ export function OrgChart({ data, onUpdate }: { data: OrgNode; onUpdate: (d: OrgN
                 <button onClick={() => setEditingNode({ ...editingNode, textAlign: 'right' })} className={`px-4 py-1.5 rounded-lg text-sm transition ${editingNode.textAlign === 'right' ? 'bg-white shadow font-bold text-blue-600' : 'text-gray-600 hover:bg-gray-200'}`}>يمين</button>
                 <button onClick={() => setEditingNode({ ...editingNode, textAlign: 'center' })} className={`px-4 py-1.5 rounded-lg text-sm transition ${(!editingNode.textAlign || editingNode.textAlign === 'center') ? 'bg-white shadow font-bold text-blue-600' : 'text-gray-600 hover:bg-gray-200'}`}>توسيط</button>
                 <button onClick={() => setEditingNode({ ...editingNode, textAlign: 'left' })} className={`px-4 py-1.5 rounded-lg text-sm transition ${editingNode.textAlign === 'left' ? 'bg-white shadow font-bold text-blue-600' : 'text-gray-600 hover:bg-gray-200'}`}>يسار</button>
+              </div>
+            </div>
+            <div className="mb-4 flex gap-4">
+              <div className="flex-1">
+                <label className="block text-sm font-semibold text-gray-700 mb-2">نوع السطر</label>
+                <select value={editingNode.lineStyle || 'solid'} onChange={e => setEditingNode({ ...editingNode, lineStyle: e.target.value as any })} className="w-full border-2 border-gray-200 rounded-xl p-2 text-sm outline-none focus:border-blue-500 bg-gray-50">
+                  <option value="solid">متصل (Solid)</option>
+                  <option value="dashed">متقطع (Dashed)</option>
+                </select>
+              </div>
+              <div className="flex-1">
+                <label className="block text-sm font-semibold text-gray-700 mb-2">السهم المخصص</label>
+                <label className="flex items-center gap-2 cursor-pointer mt-3 text-sm font-medium">
+                  <input type="checkbox" checked={!!editingNode.showArrow} onChange={e => setEditingNode({ ...editingNode, showArrow: e.target.checked })} className="w-4 h-4 accent-blue-600" />
+                  إضافة سهم لهذه العقدة
+                </label>
               </div>
             </div>
             <div className="mb-6">

@@ -9,6 +9,8 @@ export interface OrgNode {
   leftSibling?: OrgNode;   // same level connected with solid horizontal line on left (like مجلس الجامعة)
   dashedDown?: boolean;    // dashed vertical line going down to this node
   textAlign?: 'right' | 'center' | 'left';
+  lineStyle?: 'solid' | 'dashed';
+  showArrow?: boolean;
 }
 
 export const initialData: OrgNode = {
