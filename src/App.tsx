@@ -261,7 +261,7 @@ function App() {
            {loading ? (
              <div className="flex justify-center items-center h-full text-gray-500">جاري التحميل...</div>
            ) : (
-             <FlowChart initialNodes={nodes} initialEdges={edges} onSave={handleUpdateData} />
+             <FlowChart initialNodes={nodes} initialEdges={edges} onSave={handleUpdateData} settings={settings} />
            )}
         </div>
       </main>

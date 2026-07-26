@@ -11,6 +11,7 @@ import {
   BaseEdge,
   getSmoothStepPath,
   EdgeLabelRenderer,
+  MarkerType,
 } from '@xyflow/react';
 import type {
   Node,
@@ -86,9 +87,10 @@ const CustomNode = ({ data, isConnectable, selected }: any) => {
         backgroundColor: clr.bg, 
         color: clr.text, 
         borderColor: selected ? '#3b82f6' : 'rgba(255,255,255,0.5)',
-        textAlign: data.textAlign || 'center'
+        textAlign: data.textAlign || 'center',
+        fontSize: 'calc(12px + var(--font-size-offset, 0px))'
       }}
-      className={`relative inline-flex flex-col items-center justify-center w-[160px] min-h-[60px] text-[12px] px-3 py-2 font-semibold rounded-lg shadow-md border-2 whitespace-pre-wrap leading-snug select-none transition-transform ${selected ? 'ring-4 ring-blue-500 scale-105 z-50' : 'hover:-translate-y-1'}`}
+      className={`relative inline-flex flex-col items-center justify-center w-[160px] min-h-[60px] px-3 py-2 font-semibold rounded-lg shadow-md border-2 whitespace-pre-wrap leading-snug select-none transition-transform ${selected ? 'ring-4 ring-blue-500 scale-105 z-50' : 'hover:-translate-y-1'}`}
     >
       <Handle type="target" position={Position.Top} isConnectable={isConnectable} className="w-3 h-3 bg-blue-500" />
       <Handle type="target" position={Position.Right} id="right" isConnectable={isConnectable} className="w-3 h-3 bg-green-500" />
@@ -109,7 +111,7 @@ const CustomEdge = ({ id, sourceX, sourceY, targetX, targetY, sourcePosition, ta
 
   return (
     <>
-      <BaseEdge path={edgePath} markerEnd={markerEnd} style={{ ...style, strokeWidth: 3 }} />
+      <BaseEdge path={edgePath} markerEnd={markerEnd} style={{ ...style, strokeWidth: 'var(--line-thickness, 2px)', stroke: 'var(--line-color, #374151)' }} />
       <EdgeLabelRenderer>
         <div
           style={{
@@ -133,7 +135,7 @@ const CustomEdge = ({ id, sourceX, sourceY, targetX, targetY, sourcePosition, ta
 };
 
 // ==================== MAIN COMPONENT ====================
-export default function FlowChart({ initialNodes, initialEdges, onSave }: { initialNodes: Node[], initialEdges: Edge[], onSave: (n: Node[], e: Edge[]) => void }) {
+export default function FlowChart({ initialNodes, initialEdges, onSave, settings }: { initialNodes: Node[], initialEdges: Edge[], onSave: (n: Node[], e: Edge[]) => void, settings?: any }) {
   const [nodes, setNodes] = useState<Node[]>(initialNodes);
   const [edges, setEdges] = useState<Edge[]>(initialEdges);
   const [editingNode, setEditingNode] = useState<Node | null>(null);
@@ -217,8 +219,9 @@ export default function FlowChart({ initialNodes, initialEdges, onSave }: { init
 
   const edgesWithData = useMemo(() => edges.map(e => ({
     ...e,
+    markerEnd: settings?.showArrows ? { type: MarkerType.ArrowClosed, color: 'var(--line-color, #374151)' } : undefined,
     data: { ...e.data, onAddNodeOnEdge: handleAddNodeOnEdge }
-  })), [edges, handleAddNodeOnEdge]);
+  })), [edges, handleAddNodeOnEdge, settings?.showArrows]);
 
 
   const handleAddStandalone = () => {
@@ -327,7 +330,7 @@ export default function FlowChart({ initialNodes, initialEdges, onSave }: { init
         </div>
       </div>
 
-      <div className="flex-1 relative bg-gray-50/50 h-full w-full" dir="ltr">
+      <div className={`flex-1 relative bg-gray-50/50 h-full w-full ${settings?.showArrows ? 'show-arrows' : ''}`} dir="ltr">
         <ReactFlow
           nodes={nodes}
           edges={edgesWithData}
@@ -338,9 +341,9 @@ export default function FlowChart({ initialNodes, initialEdges, onSave }: { init
           onNodeDoubleClick={(_, node) => setEditingNode(node)}
           nodeTypes={nodeTypes}
           edgeTypes={edgeTypes}
-          style={{ width: '100%', height: '100%' }}
+          style={{ width: '100%', height: '100%', fontSize: `calc(12px + var(--font-size-offset, 0px))` }}
           fitView
-          defaultEdgeOptions={{ type: 'orgEdge', style: { strokeWidth: 2, stroke: '#374151' } }}
+          defaultEdgeOptions={{ type: 'orgEdge' }}
         >
           <Background color="#ccc" gap={16} />
           <Controls />

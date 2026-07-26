@@ -5,11 +5,49 @@ import * as XLSX from 'xlsx';
 import type { OrgNode } from './data';
 
 // --- Export to Image ---
-export const exportToImage = async (elementId: string) => {
-  const el = document.getElementById(elementId);
-  if (!el) return;
+export const exportToImage = async (_elementId: string) => {
+  const el = document.querySelector('.react-flow__viewport') as HTMLElement;
+  if (!el) {
+    alert('لم يتم العثور على الرسمة!');
+    return;
+  }
+  
   try {
-    const dataUrl = await toPng(el, { quality: 1, backgroundColor: '#f8f9fa' });
+    // 1. Calculate bounding box of all nodes
+    const nodes = document.querySelectorAll('.react-flow__node');
+    if (nodes.length === 0) return;
+    
+    let minX = Infinity, minY = Infinity, maxX = -Infinity, maxY = -Infinity;
+    nodes.forEach(n => {
+      const transform = (n as HTMLElement).style.transform;
+      const match = transform.match(/translate\(([-\d.]+)px,\s*([-\d.]+)px\)/);
+      if (match) {
+        const x = parseFloat(match[1]);
+        const y = parseFloat(match[2]);
+        const w = (n as HTMLElement).offsetWidth || 160;
+        const h = (n as HTMLElement).offsetHeight || 60;
+        minX = Math.min(minX, x);
+        minY = Math.min(minY, y);
+        maxX = Math.max(maxX, x + w);
+        maxY = Math.max(maxY, y + h);
+      }
+    });
+
+    const padding = 60;
+    const width = maxX - minX + padding * 2;
+    const height = maxY - minY + padding * 2;
+
+    const dataUrl = await toPng(el, { 
+      quality: 1, 
+      backgroundColor: '#f8f9fa',
+      width,
+      height,
+      style: {
+        width: `${width}px`,
+        height: `${height}px`,
+        transform: `translate(${-minX + padding}px, ${-minY + padding}px) scale(1)`
+      }
+    });
     saveAs(dataUrl, 'org-chart.png');
   } catch (err) {
     console.error('Failed to export image', err);
