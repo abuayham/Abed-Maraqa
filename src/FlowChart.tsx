@@ -59,13 +59,13 @@ const CustomNode = ({ data, isConnectable, selected }: any) => {
       <Handle type="source" position={Position.Left} id="left" isConnectable={isConnectable} className="w-3 h-3 bg-yellow-500" />
       
       {/* Quick Add Buttons (Show on hover or select) */}
-      <div className="absolute -bottom-4 left-1/2 transform -translate-x-1/2 opacity-0 group-hover:opacity-100 transition-opacity">
-        <button onClick={(e) => { e.stopPropagation(); data.onAddChild?.(data.id, 'bottom'); }} className="bg-blue-600 text-white w-5 h-5 rounded-full flex items-center justify-center text-xs shadow hover:scale-110 leading-none pb-0.5" title="إضافة تحت">+</button>
+      <div className="absolute -bottom-4 left-1/2 transform -translate-x-1/2 opacity-0 group-hover:opacity-100 transition-opacity plus-btn">
+        <button onClick={(e) => { e.stopPropagation(); data.onAddChild?.(data.id, 'bottom'); }} className="bg-blue-600 text-white w-5 h-5 rounded-full flex items-center justify-center text-xs shadow hover:scale-110 leading-none pb-0.5" title="إضافة للأسفل">+</button>
       </div>
-      <div className="absolute top-1/2 -right-4 transform -translate-y-1/2 opacity-0 group-hover:opacity-100 transition-opacity">
+      <div className="absolute top-1/2 -right-4 transform -translate-y-1/2 opacity-0 group-hover:opacity-100 transition-opacity plus-btn">
         <button onClick={(e) => { e.stopPropagation(); data.onAddChild?.(data.id, 'right'); }} className="bg-blue-600 text-white w-5 h-5 rounded-full flex items-center justify-center text-xs shadow hover:scale-110 leading-none pb-0.5" title="إضافة يمين">+</button>
       </div>
-      <div className="absolute top-1/2 -left-4 transform -translate-y-1/2 opacity-0 group-hover:opacity-100 transition-opacity">
+      <div className="absolute top-1/2 -left-4 transform -translate-y-1/2 opacity-0 group-hover:opacity-100 transition-opacity plus-btn">
         <button onClick={(e) => { e.stopPropagation(); data.onAddChild?.(data.id, 'left'); }} className="bg-blue-600 text-white w-5 h-5 rounded-full flex items-center justify-center text-xs shadow hover:scale-110 leading-none pb-0.5" title="إضافة يسار">+</button>
       </div>
     </div>
@@ -88,8 +88,9 @@ const CustomEdge = ({ id, sourceX, sourceY, targetX, targetY, sourcePosition, ta
             transform: `translate(-50%, -50%) translate(${labelX}px,${labelY}px)`,
             pointerEvents: 'all',
           }}
-          className="nodrag nopan"
+          className="opacity-0 group-hover:opacity-100 transition-opacity edge-plus-btn nodrag nopan"
         >
+          {data?.onAddNodeOnEdge && (
           <button
             onClick={() => data?.onAddNodeOnEdge?.(id, sourceX, sourceY, targetX, targetY)}
             className="bg-white border border-gray-300 text-blue-500 rounded-full w-6 h-6 flex items-center justify-center shadow-md hover:bg-blue-50 hover:scale-110 transition cursor-pointer text-lg font-bold leading-none pb-0.5"
@@ -97,6 +98,7 @@ const CustomEdge = ({ id, sourceX, sourceY, targetX, targetY, sourcePosition, ta
           >
             +
           </button>
+          )}
         </div>
       </EdgeLabelRenderer>
     </>
@@ -307,7 +309,8 @@ export default function FlowChart({ initialNodes, initialEdges, onSave, settings
   };
 
   return (
-    <div className="absolute inset-0 flex">
+    <div className={`absolute inset-0 flex ${settings?.isEditMode === false ? 'view-mode' : ''}`}>
+      {settings?.isEditMode !== false && (
       <div className="w-64 bg-white shadow-xl border-r p-4 flex flex-col gap-4 z-10 relative">
         <h3 className="font-bold text-gray-800 text-lg border-b pb-2">أدوات الرسم الحر</h3>
         
@@ -376,6 +379,7 @@ export default function FlowChart({ initialNodes, initialEdges, onSave, settings
           </ul>
         </div>
       </div>
+      )}
 
       <div className={`flex-1 relative bg-gray-50/50 h-full w-full ${settings?.showArrows ? 'show-arrows' : ''}`} dir="ltr">
         <ReactFlow
@@ -391,10 +395,13 @@ export default function FlowChart({ initialNodes, initialEdges, onSave, settings
             onSave(nodes, newEdges);
           }}
           onNodeDragStart={takeSnapshot}
-          onNodeClick={(_, node) => setEditingNode(node)}
-          onNodeDoubleClick={(_, node) => setEditingNode(node)}
+          onNodeClick={settings?.isEditMode !== false ? (_, node) => setEditingNode(node) : undefined}
+          onNodeDoubleClick={settings?.isEditMode !== false ? (_, node) => setEditingNode(node) : undefined}
           nodeTypes={nodeTypes}
           edgeTypes={edgeTypes}
+          nodesDraggable={settings?.isEditMode !== false}
+          nodesConnectable={settings?.isEditMode !== false}
+          elementsSelectable={settings?.isEditMode !== false}
           style={{ width: '100%', height: '100%', fontSize: `calc(12px + var(--font-size-offset, 0px))` }}
           fitView
           defaultEdgeOptions={{ type: 'orgEdge' }}

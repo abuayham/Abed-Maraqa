@@ -3,7 +3,7 @@ import FlowChart from './FlowChart';
 import type { OrgNode } from './data';
 import { Download, CheckCircle2, RefreshCw, ChevronDown, FileImage, Settings2, X, AlertTriangle } from 'lucide-react';
 import { supabase } from './supabase';
-import { exportToImage } from './exportUtils';
+import { exportToImage, exportToWord, exportToExcel } from './exportUtils';
 import type { Node, Edge } from '@xyflow/react';
 import { initialData } from './data';
 
@@ -16,9 +16,10 @@ function App() {
   const [edges, setEdges] = useState<Edge[]>([]);
   
   const [loading, setLoading] = useState(true);
-  const [saveStatus, setSaveStatus] = useState<'saved' | 'saving' | 'error'>('saved');
+  const [saveStatus, setSaveStatus] = useState<string>('saved');
   const [exportMenuOpen, setExportMenuOpen] = useState(false);
   const [settingsOpen, setSettingsOpen] = useState(false);
+  const [isEditMode, setIsEditMode] = useState(true);
   const [settings, setSettings] = useState({
     lineThickness: 2,
     lineColor: '#374151',
@@ -165,14 +166,14 @@ function App() {
         .upsert({ id: 1, data: { nodes: currNodes, edges: currEdges } });
       
       if (error) {
-        setSaveStatus('error');
+        setSaveStatus(`error: ${error.message || JSON.stringify(error)}`);
         console.error(error);
       } else {
         setSaveStatus('saved');
       }
-    } catch (err) {
+    } catch (err: any) {
       console.error(err);
-      setSaveStatus('error');
+      setSaveStatus(`error: ${err.message || 'Unknown error'}`);
     }
   };
 
@@ -207,19 +208,22 @@ function App() {
             <span className="text-xs text-gray-400">|</span>
             <div className={`text-xs flex items-center gap-1 font-medium ${
               saveStatus === 'saved' ? 'text-green-600' : 
-              saveStatus === 'error' ? 'text-red-500' : 'text-orange-500'
+              saveStatus.startsWith('error') ? 'text-red-500' : 'text-orange-500'
             }`}>
               {saveStatus === 'saved' && <><CheckCircle2 size={12}/> تم الحفظ</>}
               {saveStatus === 'saving' && <><RefreshCw size={12} className="animate-spin"/> جاري الحفظ التلقائي...</>}
-              {saveStatus === 'error' && 'فشل الحفظ'}
+              {saveStatus.startsWith('error') && `فشل الحفظ: ${saveStatus}`}
             </div>
           </div>
         </div>
         
         <div className="flex gap-3 relative">
-          <div className="flex bg-orange-100 text-orange-700 rounded-lg p-1.5 px-3 items-center gap-2 text-sm font-bold shadow-sm border border-orange-200">
-            <AlertTriangle size={16}/> وضع الرسم الحر التفاعلي
-          </div>
+          <button 
+            onClick={() => setIsEditMode(!isEditMode)}
+            className={`flex items-center gap-2 px-4 py-2 rounded font-bold shadow-sm border transition ${isEditMode ? 'bg-orange-100 text-orange-700 border-orange-200 hover:bg-orange-200' : 'bg-gray-100 text-gray-700 border-gray-200 hover:bg-gray-200'}`}
+          >
+            <AlertTriangle size={16}/> {isEditMode ? 'وضع الرسم الحر (مفعل)' : 'وضع العرض (مقفل)'}
+          </button>
           
           <button 
             onClick={() => setSettingsOpen(true)}
@@ -249,7 +253,10 @@ function App() {
               <div className="absolute top-full left-0 mt-2 w-48 bg-white border border-gray-100 rounded-xl shadow-xl overflow-hidden py-1 z-50">
                 <button onClick={() => { exportToImage('org-chart-container'); setExportMenuOpen(false); }} className="w-full text-right px-4 py-2.5 text-sm hover:bg-gray-50 flex items-center gap-3"><FileImage size={16} className="text-blue-500"/> صورة (PNG)</button>
                 <div className="h-px bg-gray-100 my-1"/>
-                <button onClick={exportToJson} className="w-full text-right px-4 py-2.5 text-sm hover:bg-gray-50 text-gray-600">نسخة احتياطية (JSON)</button>
+                <button onClick={() => { exportToWord(nodes, edges); setExportMenuOpen(false); }} className="w-full text-right px-4 py-2.5 text-sm hover:bg-gray-50 text-gray-700 flex items-center gap-3">ملف وورد (Word)</button>
+                <button onClick={() => { exportToExcel(nodes, edges); setExportMenuOpen(false); }} className="w-full text-right px-4 py-2.5 text-sm hover:bg-gray-50 text-gray-700 flex items-center gap-3">ملف إكسل (Excel)</button>
+                <div className="h-px bg-gray-100 my-1"/>
+                <button onClick={exportToJson} className="w-full text-right px-4 py-2.5 text-sm hover:bg-gray-50 text-gray-600">تصدير بيانات (JSON)</button>
               </div>
             )}
           </div>
@@ -261,7 +268,7 @@ function App() {
            {loading ? (
              <div className="flex justify-center items-center h-full text-gray-500">جاري التحميل...</div>
            ) : (
-             <FlowChart initialNodes={nodes} initialEdges={edges} onSave={handleUpdateData} settings={settings} />
+             <FlowChart initialNodes={nodes} initialEdges={edges} onSave={handleUpdateData} settings={{...settings, isEditMode}} />
            )}
         </div>
       </main>

@@ -2,7 +2,7 @@ import { toPng } from 'html-to-image';
 import { saveAs } from 'file-saver';
 import { Document, Packer, Paragraph, HeadingLevel, AlignmentType } from 'docx';
 import * as XLSX from 'xlsx';
-import type { OrgNode } from './data';
+import type { Node, Edge } from '@xyflow/react';
 
 // --- Export to Image ---
 export const exportToImage = async (_elementId: string) => {
@@ -55,8 +55,46 @@ export const exportToImage = async (_elementId: string) => {
   }
 };
 
+interface ExportNode {
+  id: string;
+  title: string;
+  children: ExportNode[];
+}
+
+const buildHierarchy = (nodes: Node[], edges: Edge[]): ExportNode[] => {
+  if (nodes.length === 0) return [];
+  
+  const map = new Map<string, ExportNode>();
+  nodes.forEach(n => {
+    map.set(n.id, {
+      id: n.id,
+      title: (n.data?.title as string) || 'بدون مسمى',
+      children: []
+    });
+  });
+
+  const roots: ExportNode[] = [];
+  const targetIds = new Set(edges.map(e => e.target));
+  
+  nodes.forEach(n => {
+    if (!targetIds.has(n.id)) {
+      roots.push(map.get(n.id)!);
+    }
+  });
+
+  edges.forEach(e => {
+    const parent = map.get(e.source);
+    const child = map.get(e.target);
+    if (parent && child) {
+      parent.children.push(child);
+    }
+  });
+
+  return roots;
+};
+
 // --- Export to Word ---
-const walkNodeForWord = (node: OrgNode, level: number = 0): Paragraph[] => {
+const walkNodeForWord = (node: ExportNode, level: number = 0): Paragraph[] => {
   const indent = level * 720; // 720 twips = 0.5 inch
   let paragraphs: Paragraph[] = [
     new Paragraph({
@@ -67,19 +105,6 @@ const walkNodeForWord = (node: OrgNode, level: number = 0): Paragraph[] => {
     })
   ];
 
-  if (node.leftSibling) {
-    paragraphs = paragraphs.concat(walkNodeForWord(node.leftSibling, level));
-  }
-  if (node.leftStaff) {
-    node.leftStaff.forEach(staff => {
-      paragraphs = paragraphs.concat(walkNodeForWord(staff, level + 1));
-    });
-  }
-  if (node.rightStaff) {
-    node.rightStaff.forEach(staff => {
-      paragraphs = paragraphs.concat(walkNodeForWord(staff, level + 1));
-    });
-  }
   if (node.children) {
     node.children.forEach(child => {
       paragraphs = paragraphs.concat(walkNodeForWord(child, level + 1));
@@ -88,7 +113,13 @@ const walkNodeForWord = (node: OrgNode, level: number = 0): Paragraph[] => {
   return paragraphs;
 };
 
-export const exportToWord = async (data: OrgNode) => {
+export const exportToWord = async (nodes: Node[], edges: Edge[]) => {
+  const roots = buildHierarchy(nodes, edges);
+  let paragraphs: Paragraph[] = [];
+  roots.forEach(r => {
+    paragraphs = paragraphs.concat(walkNodeForWord(r));
+  });
+
   const doc = new Document({
     sections: [{
       properties: {},
@@ -98,7 +129,7 @@ export const exportToWord = async (data: OrgNode) => {
           heading: HeadingLevel.TITLE,
           alignment: AlignmentType.CENTER,
         }),
-        ...walkNodeForWord(data)
+        ...paragraphs
       ],
     }],
   });
@@ -114,25 +145,22 @@ interface ExcelRow {
   Manager: string;
 }
 
-const walkNodeForExcel = (node: OrgNode, manager: string = '-', level: number = 0, rows: ExcelRow[] = []) => {
+const walkNodeForExcel = (node: ExportNode, manager: string = '-', level: number = 0, rows: ExcelRow[] = []) => {
   rows.push({ Level: level, Role: node.title, Manager: manager });
 
-  if (node.leftSibling) walkNodeForExcel(node.leftSibling, manager, level, rows);
-  
-  if (node.leftStaff) {
-    node.leftStaff.forEach(staff => walkNodeForExcel(staff, node.title, level + 1, rows));
-  }
-  if (node.rightStaff) {
-    node.rightStaff.forEach(staff => walkNodeForExcel(staff, node.title, level + 1, rows));
-  }
   if (node.children) {
     node.children.forEach(child => walkNodeForExcel(child, node.title, level + 1, rows));
   }
   return rows;
 };
 
-export const exportToExcel = (data: OrgNode) => {
-  const rows = walkNodeForExcel(data);
+export const exportToExcel = (nodes: Node[], edges: Edge[]) => {
+  const roots = buildHierarchy(nodes, edges);
+  let rows: ExcelRow[] = [];
+  roots.forEach(r => {
+    rows = walkNodeForExcel(r, '-', 0, rows);
+  });
+  
   const worksheet = XLSX.utils.json_to_sheet(rows);
   const workbook = XLSX.utils.book_new();
   XLSX.utils.book_append_sheet(workbook, worksheet, "الهيكل التنظيمي");

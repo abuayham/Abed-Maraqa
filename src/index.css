@@ -124,3 +124,7 @@
   border-style: solid;
   border-color: var(--line-color, #374151) transparent transparent transparent;
 }
+
+.view-mode .plus-btn, .view-mode .edge-plus-btn, .view-mode .react-flow__handle {
+  display: none !important;
+}
