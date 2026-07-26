@@ -66,7 +66,7 @@ function App() {
       newNodes.push({
         id: node.id,
         type: 'orgNode',
-        position: { x: Math.random() * 200, y: Math.random() * 200 },
+        position: node.position || { x: Math.random() * 200, y: Math.random() * 200 },
         data: { title: node.title, color: node.color, textAlign: node.textAlign }
       });
       
@@ -88,9 +88,9 @@ function App() {
     };
     
     traverse(orgNode);
-    const result = getLayoutedElements(newNodes, newEdges);
-    console.log("convertLegacyData result:", result);
-    return result;
+    // Return explicit layout directly instead of forcing dagre auto-layout
+    // which breaks side nodes and doesn't match original design exactly.
+    return { nodes: newNodes, edges: newEdges };
   };
 
   const fetchData = async () => {
