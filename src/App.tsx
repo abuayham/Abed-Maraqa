@@ -6,8 +6,12 @@ import { supabase } from './supabase';
 import { exportToImage } from './exportUtils';
 import type { Node, Edge } from '@xyflow/react';
 
+const DEFAULT_NODES: Node[] = [
+  { id: 'root', type: 'orgNode', position: { x: 300, y: 100 }, data: { title: 'رئيس الجامعة', color: 'green-dark' } }
+];
+
 function App() {
-  const [nodes, setNodes] = useState<Node[]>([]);
+  const [nodes, setNodes] = useState<Node[]>(DEFAULT_NODES);
   const [edges, setEdges] = useState<Edge[]>([]);
   
   const [loading, setLoading] = useState(true);
@@ -99,14 +103,20 @@ function App() {
         console.error('Error fetching data:', error);
       } else if (orgData && orgData.data) {
         isInitialLoad.current = true;
-        if (orgData.data.nodes) {
+        if (orgData.data.nodes && orgData.data.nodes.length > 0) {
           setNodes(orgData.data.nodes);
           setEdges(orgData.data.edges || []);
-        } else {
+        } else if (orgData.data.title || orgData.data.id) {
           // Legacy conversion
-          const { nodes: n, edges: e } = convertLegacyData(orgData.data);
-          setNodes(n);
-          setEdges(e);
+          try {
+            const { nodes: n, edges: e } = convertLegacyData(orgData.data);
+            if (n.length > 0) {
+              setNodes(n);
+              setEdges(e);
+            }
+          } catch (e) {
+            console.error('Migration failed', e);
+          }
         }
       }
     } catch (err) {
