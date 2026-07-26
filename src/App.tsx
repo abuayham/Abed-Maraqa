@@ -7,103 +7,126 @@ import { exportToImage, exportToWord, exportToExcel } from './exportUtils';
 import type { Node, Edge } from '@xyflow/react';
 import { initialData } from './data';
 
-const CX = 1400;
-const Y0 = 0, Y1 = 160, Y2_A = 270, Y2_B = 390, Y3 = 540, Y4 = 680, Y5 = 820, Y6 = 980;
+// Layout constants - matching original image exactly
+// X increases left to right on screen
+// Admin=far left, Academic=center, Gaza/PR/Students=far right
+const CX = 1400; // president center X
+const Y0 = 0, Y1 = 160, Y2_A = 280, Y2_B = 400, Y3 = 560, Y4 = 700, Y5 = 860, Y6 = 1020;
 
 const DEFAULT_NODES: Node[] = [
-  { id: 'board', type: 'orgNode', position: { x: CX - 80, y: Y0 }, data: { title: 'مجلس الأمناء', color: 'green-dark' } },
-  { id: 'president', type: 'orgNode', position: { x: CX - 80, y: Y1 }, data: { title: 'رئيس الجامعة', color: 'green-dark' } },
-  { id: 'univ-council', type: 'orgNode', position: { x: CX + 260, y: Y1 }, data: { title: 'مجلس الجامعة', color: 'green-dark' } },
-  { id: 'audit', type: 'orgNode', position: { x: CX - 360, y: Y2_A }, data: { title: 'مدير دائرة التدقيق الداخلي', color: 'green-light' } },
-  { id: 'advisor', type: 'orgNode', position: { x: CX - 360, y: Y2_B }, data: { title: 'مستشار رئيس الجامعة', color: 'green-light' } },
-  { id: 'asst-pres', type: 'orgNode', position: { x: CX + 260, y: Y2_A }, data: { title: 'مساعد رئيس الجامعة', color: 'green-light' } },
-  { id: 'amman-office', type: 'orgNode', position: { x: CX + 260, y: Y2_B }, data: { title: 'مدير مكتب ارتباط عمان', color: 'green-light' } },
-  // VP row
-  { id: 'vp-admin', type: 'orgNode', position: { x: 2450, y: Y3 }, data: { title: 'نائب رئيس الجامعة للشؤون الإدارية', color: 'orange' } },
-  { id: 'vp-finance', type: 'orgNode', position: { x: 2080, y: Y3 }, data: { title: 'نائب رئيس الجامعة للشؤون المالية', color: 'orange' } },
-  { id: 'vp-academic', type: 'orgNode', position: { x: 1400, y: Y3 }, data: { title: 'نائب رئيس الجامعة للشؤون الأكاديمية', color: 'orange' } },
-  { id: 'quality', type: 'orgNode', position: { x: 900, y: Y3 }, data: { title: 'دائرة التخطيط والجودة', color: 'teal' } },
-  { id: 'branch-dirs', type: 'orgNode', position: { x: 660, y: Y3 }, data: { title: 'مدراء الفروع', color: 'orange' } },
-  { id: 'vp-gaza', type: 'orgNode', position: { x: 420, y: Y3 }, data: { title: 'نائب رئيس الجامعة لقطاع غزة', color: 'orange' } },
-  { id: 'pr', type: 'orgNode', position: { x: 160, y: Y3 }, data: { title: 'مدير دائرة العلاقات العامة والدولية والإعلام', color: 'teal' } },
-  { id: 'student-affairs', type: 'orgNode', position: { x: -100, y: Y3 }, data: { title: 'عميد شؤون الطلبة', color: 'teal' } },
-  // Assistants
-  { id: 'asst-vp-admin', type: 'orgNode', position: { x: 2450, y: Y4 }, data: { title: 'مساعد نائب الرئيس للشؤون الإدارية', color: 'orange-light' } },
-  { id: 'asst-vp-finance', type: 'orgNode', position: { x: 2080, y: Y4 }, data: { title: 'مساعد نائب الرئيس للشؤون المالية', color: 'orange-light' } },
-  { id: 'asst-vp-academic', type: 'orgNode', position: { x: 1400, y: Y4 }, data: { title: 'مساعد نائب الرئيس للشؤون الأكاديمية', color: 'orange-light' } },
-  { id: 'asst-vp-gaza', type: 'orgNode', position: { x: 420, y: Y4 }, data: { title: 'المساعد المالي لنائب الرئيس لشؤون القطاع', color: 'orange-light' } },
-  // Under Admin
-  { id: 'it-center', type: 'orgNode', position: { x: 2750, y: Y5 }, data: { title: 'مدير مركز تكنولوجيا المعلومات والاتصالات', color: 'orange-light' } },
-  { id: 'hr', type: 'orgNode', position: { x: 2570, y: Y5 }, data: { title: 'مدير دائرة الموارد البشرية', color: 'orange-light' } },
-  { id: 'procurement', type: 'orgNode', position: { x: 2390, y: Y5 }, data: { title: 'مدير دائرة اللوازم والمشتريات', color: 'orange-light' } },
-  { id: 'registry', type: 'orgNode', position: { x: 2210, y: Y5 }, data: { title: 'رئيس وحدة السجل المركزي والانتساب', color: 'orange-light' } },
-  // Under Finance
-  { id: 'finance-dir', type: 'orgNode', position: { x: 2080, y: Y5 }, data: { title: 'المدير المالي', color: 'orange-light' } },
-  // Under Academic - Deans
-  { id: 'dean-agri', type: 'orgNode', position: { x: 1870, y: Y5 }, data: { title: 'عميد كلية الزراعة', color: 'blue-light' } },
-  { id: 'dean-media', type: 'orgNode', position: { x: 1720, y: Y5 }, data: { title: 'عميد كلية الإعلام', color: 'blue-light' } },
-  { id: 'dean-arts', type: 'orgNode', position: { x: 1570, y: Y5 }, data: { title: 'عميد كلية الآداب', color: 'blue-light' } },
-  { id: 'dean-social', type: 'orgNode', position: { x: 1420, y: Y5 }, data: { title: 'عميد كلية التنمية الاجتماعية والأسرية', color: 'blue-light' } },
-  { id: 'dean-tech', type: 'orgNode', position: { x: 1270, y: Y5 }, data: { title: 'عميد كلية التكنولوجيا والعلوم التطبيقية', color: 'blue-light' } },
-  { id: 'dean-econ', type: 'orgNode', position: { x: 1120, y: Y5 }, data: { title: 'عميد كلية العلوم الاجتماعية والاقتصادية', color: 'blue-light' } },
-  { id: 'dean-exams', type: 'orgNode', position: { x: 970, y: Y5 }, data: { title: 'عميد القبول والتسجيل والامتحانات', color: 'blue-light' } },
-  { id: 'dean-grad', type: 'orgNode', position: { x: 820, y: Y5 }, data: { title: 'عميد الدراسات العليا', color: 'blue-light' } },
-  { id: 'dean-research', type: 'orgNode', position: { x: 670, y: Y5 }, data: { title: 'عميد البحث العلمي', color: 'blue-light' } },
-  // Level 6 sub-centers
-  { id: 'agri-center', type: 'orgNode', position: { x: 1870, y: Y6 }, data: { title: 'مدير مركز البحوث الزراعية', color: 'peach' } },
-  { id: 'folk-center', type: 'orgNode', position: { x: 1570, y: Y6 }, data: { title: 'مدير مركز التراث الشعبي', color: 'peach' } },
-  { id: 'admin-research-center', type: 'orgNode', position: { x: 970, y: Y6 }, data: { title: 'كلية الأبحاث الإدارية والاقتصادية', color: 'peach' } },
-  { id: 'curriculum', type: 'orgNode', position: { x: 730, y: Y6 }, data: { title: 'مدير مركز المناهج والمقررات الدراسية', color: 'peach' } },
-  { id: 'cont-edu', type: 'orgNode', position: { x: 580, y: Y6 }, data: { title: 'مدير مركز التعليم المستمر وخدمة المجتمع', color: 'peach' } },
-  { id: 'library', type: 'orgNode', position: { x: 430, y: Y6 }, data: { title: 'أمين المكتبة المركزية', color: 'peach' } },
-  { id: 'digital', type: 'orgNode', position: { x: 280, y: Y6 }, data: { title: 'مدير مركز التعليم الرقمي', color: 'peach' } },
-  // Under Admin level 6
-  { id: 'diwan', type: 'orgNode', position: { x: 2570, y: Y6 }, data: { title: 'رئيس الديوان المركزي', color: 'orange-light' } },
-  { id: 'engineering', type: 'orgNode', position: { x: 2750, y: Y6 }, data: { title: 'مدير دائرة الهندسة والإنشاءات', color: 'orange-light' } },
+  // ===== TOP =====
+  { id: 'board',        type: 'orgNode', position: { x: CX - 80, y: Y0   }, data: { title: 'مجلس الأمناء',             color: 'green-dark'   } },
+  { id: 'president',    type: 'orgNode', position: { x: CX - 80, y: Y1   }, data: { title: 'رئيس الجامعة',             color: 'green-dark'   } },
+  { id: 'univ-council', type: 'orgNode', position: { x: CX + 280, y: Y1  }, data: { title: 'مجلس الجامعة',             color: 'green-dark'   } },
+
+  // ===== STAFF (left & right of president) =====
+  { id: 'audit',        type: 'orgNode', position: { x: CX - 420, y: Y2_A }, data: { title: 'مدير دائرة التدقيق الداخلي', color: 'green-light' } },
+  { id: 'advisor',      type: 'orgNode', position: { x: CX - 420, y: Y2_B }, data: { title: 'مستشار رئيس الجامعة',       color: 'green-light' } },
+  { id: 'asst-pres',    type: 'orgNode', position: { x: CX + 280, y: Y2_A }, data: { title: 'مساعد رئيس الجامعة',        color: 'green-light' } },
+  { id: 'amman-office', type: 'orgNode', position: { x: CX + 280, y: Y2_B }, data: { title: 'مدير مكتب ارتباط عمان',     color: 'green-light' } },
+
+  // ===== VP ROW — left to right: Admin, Finance, Academic(center), Quality, Branch, Gaza, PR, Students =====
+  { id: 'vp-admin',       type: 'orgNode', position: { x: 100,  y: Y3 }, data: { title: 'نائب رئيس الجامعة للشؤون الإدارية',   color: 'orange' } },
+  { id: 'vp-finance',     type: 'orgNode', position: { x: 580,  y: Y3 }, data: { title: 'نائب رئيس الجامعة للشؤون المالية',    color: 'orange' } },
+  { id: 'vp-academic',    type: 'orgNode', position: { x: 1400, y: Y3 }, data: { title: 'نائب رئيس الجامعة للشؤون الأكاديمية', color: 'orange' } },
+  { id: 'quality',        type: 'orgNode', position: { x: 2060, y: Y3 }, data: { title: 'دائرة التخطيط والجودة',               color: 'teal'   } },
+  { id: 'branch-dirs',    type: 'orgNode', position: { x: 2280, y: Y3 }, data: { title: 'مدراء الفروع',                         color: 'orange' } },
+  { id: 'vp-gaza',        type: 'orgNode', position: { x: 2500, y: Y3 }, data: { title: 'نائب رئيس الجامعة لقطاع غزة',        color: 'orange' } },
+  { id: 'pr',             type: 'orgNode', position: { x: 2720, y: Y3 }, data: { title: 'مدير دائرة العلاقات العامة والدولية والإعلام', color: 'teal' } },
+  { id: 'student-affairs', type: 'orgNode', position: { x: 2940, y: Y3 }, data: { title: 'عميد شؤون الطلبة',               color: 'teal'   } },
+
+  // ===== ASSISTANTS — connected horizontally beside their VP =====
+  { id: 'asst-vp-admin',    type: 'orgNode', position: { x: -170, y: Y3 }, data: { title: 'مساعد نائب الرئيس للشؤون الإدارية',   color: 'orange-light' } },
+  { id: 'asst-vp-finance',  type: 'orgNode', position: { x: 580,  y: Y4 }, data: { title: 'مساعد نائب الرئيس للشؤون المالية',    color: 'orange-light' } },
+  { id: 'asst-vp-academic', type: 'orgNode', position: { x: 1200, y: Y4 }, data: { title: 'مساعد نائب الرئيس للشؤون الأكاديمية', color: 'orange-light' } },
+  { id: 'asst-vp-gaza',     type: 'orgNode', position: { x: 2500, y: Y4 }, data: { title: 'المساعد المالي لنائب الرئيس لشؤون القطاع', color: 'orange-light' } },
+
+  // ===== UNDER VP-ADMIN (Y5) =====
+  { id: 'it-center',   type: 'orgNode', position: { x: -200, y: Y5 }, data: { title: 'مدير مركز تكنولوجيا المعلومات والاتصالات', color: 'orange-light' } },
+  { id: 'hr',          type: 'orgNode', position: { x:  -10, y: Y5 }, data: { title: 'مدير دائرة الموارد البشرية',                color: 'orange-light' } },
+  { id: 'procurement', type: 'orgNode', position: { x:  180, y: Y5 }, data: { title: 'مدير دائرة اللوازم والمشتريات',             color: 'orange-light' } },
+  { id: 'registry',    type: 'orgNode', position: { x:  370, y: Y5 }, data: { title: 'رئيس وحدة السجل المركزي والانتساب',        color: 'orange-light' } },
+  { id: 'diwan',       type: 'orgNode', position: { x:  560, y: Y5 }, data: { title: 'رئيس الديوان المركزي',                     color: 'orange-light' } },
+  { id: 'engineering', type: 'orgNode', position: { x:  -390, y: Y5 }, data: { title: 'مدير دائرة الهندسة والإنشاءات',           color: 'orange-light' } },
+
+  // ===== UNDER VP-FINANCE (Y5) =====
+  { id: 'finance-dir', type: 'orgNode', position: { x: 750, y: Y5 }, data: { title: 'المدير المالي', color: 'orange-light' } },
+
+  // ===== DEANS UNDER VP-ACADEMIC (Y5) — left to right =====
+  { id: 'dean-research', type: 'orgNode', position: { x: 900,  y: Y5 }, data: { title: 'عميد البحث العلمي',                              color: 'blue-light' } },
+  { id: 'dean-grad',     type: 'orgNode', position: { x: 1060, y: Y5 }, data: { title: 'عميد الدراسات العليا',                          color: 'blue-light' } },
+  { id: 'dean-exams',    type: 'orgNode', position: { x: 1220, y: Y5 }, data: { title: 'عميد القبول والتسجيل والامتحانات',               color: 'blue-light' } },
+  { id: 'dean-econ',     type: 'orgNode', position: { x: 1380, y: Y5 }, data: { title: 'عميد كلية العلوم الاجتماعية والاقتصادية',       color: 'blue-light' } },
+  { id: 'dean-tech',     type: 'orgNode', position: { x: 1540, y: Y5 }, data: { title: 'عميد كلية التكنولوجيا والعلوم التطبيقية',       color: 'blue-light' } },
+  { id: 'dean-social',   type: 'orgNode', position: { x: 1700, y: Y5 }, data: { title: 'عميد كلية التنمية الاجتماعية والعلوم الاجتماعية والأسرية', color: 'blue-light' } },
+  { id: 'dean-arts',     type: 'orgNode', position: { x: 1860, y: Y5 }, data: { title: 'عميد كلية الآداب',                              color: 'blue-light' } },
+  { id: 'dean-media',    type: 'orgNode', position: { x: 2020, y: Y5 }, data: { title: 'عميد كلية الإعلام',                             color: 'blue-light' } },
+  { id: 'dean-agri',     type: 'orgNode', position: { x: 2180, y: Y5 }, data: { title: 'عميد كلية الزراعة',                             color: 'blue-light' } },
+
+  // ===== LEVEL 6 — sub-centers =====
+  { id: 'curriculum',            type: 'orgNode', position: { x: 860,  y: Y6 }, data: { title: 'مدير مركز المناهج والمقررات الدراسية',       color: 'peach' } },
+  { id: 'cont-edu',              type: 'orgNode', position: { x: 980,  y: Y6 }, data: { title: 'مدير مركز التعليم المستمر وخدمة المجتمع',    color: 'peach' } },
+  { id: 'library',               type: 'orgNode', position: { x: 1100, y: Y6 }, data: { title: 'أمين المكتبة المركزية',                        color: 'peach' } },
+  { id: 'digital',               type: 'orgNode', position: { x: 1220, y: Y6 }, data: { title: 'مدير مركز التعليم الرقمي',                     color: 'peach' } },
+  { id: 'admin-research-center', type: 'orgNode', position: { x: 1340, y: Y6 }, data: { title: 'كلية الأبحاث الإدارية والاقتصادية',            color: 'peach' } },
+  { id: 'folk-center',           type: 'orgNode', position: { x: 1860, y: Y6 }, data: { title: 'مدير مركز التراث الشعبي',                      color: 'peach' } },
+  { id: 'agri-center',           type: 'orgNode', position: { x: 2180, y: Y6 }, data: { title: 'مدير مركز البحوث الزراعية',                    color: 'peach' } },
 ];
 
 const DEFAULT_EDGES: Edge[] = [
-  { id: 'e-board-pres', source: 'board', target: 'president', type: 'orgEdge', style: { strokeDasharray: '8,4' } },
+  // مجلس الأمناء → رئيس (دashed)
+  { id: 'e-board-pres',   source: 'board',     target: 'president',    type: 'orgEdge', style: { strokeDasharray: '8,4' } },
+  // رئيس ↔ مجلس الجامعة (أفقي)
   { id: 'e-pres-council', source: 'president', target: 'univ-council', type: 'orgEdge' },
-  { id: 'e-pres-audit', source: 'president', target: 'audit', type: 'orgEdge' },
-  { id: 'e-pres-advisor', source: 'president', target: 'advisor', type: 'orgEdge', style: { strokeDasharray: '8,4' } },
-  { id: 'e-pres-asst', source: 'president', target: 'asst-pres', type: 'orgEdge' },
-  { id: 'e-pres-amman', source: 'president', target: 'amman-office', type: 'orgEdge' },
-  { id: 'e-pres-vpadmin', source: 'president', target: 'vp-admin', type: 'orgEdge' },
-  { id: 'e-pres-vpfin', source: 'president', target: 'vp-finance', type: 'orgEdge' },
-  { id: 'e-pres-vpac', source: 'president', target: 'vp-academic', type: 'orgEdge' },
-  { id: 'e-pres-qual', source: 'president', target: 'quality', type: 'orgEdge' },
-  { id: 'e-pres-branch', source: 'president', target: 'branch-dirs', type: 'orgEdge' },
-  { id: 'e-pres-vpgaza', source: 'president', target: 'vp-gaza', type: 'orgEdge' },
-  { id: 'e-pres-pr', source: 'president', target: 'pr', type: 'orgEdge' },
-  { id: 'e-pres-student', source: 'president', target: 'student-affairs', type: 'orgEdge' },
-  { id: 'e-vpadmin-asst', source: 'vp-admin', target: 'asst-vp-admin', type: 'orgEdge' },
-  { id: 'e-vpfin-asst', source: 'vp-finance', target: 'asst-vp-finance', type: 'orgEdge' },
-  { id: 'e-vpac-asst', source: 'vp-academic', target: 'asst-vp-academic', type: 'orgEdge' },
-  { id: 'e-vpgaza-asst', source: 'vp-gaza', target: 'asst-vp-gaza', type: 'orgEdge' },
-  { id: 'e-vpadmin-it', source: 'vp-admin', target: 'it-center', type: 'orgEdge' },
-  { id: 'e-vpadmin-hr', source: 'vp-admin', target: 'hr', type: 'orgEdge' },
-  { id: 'e-vpadmin-proc', source: 'vp-admin', target: 'procurement', type: 'orgEdge' },
-  { id: 'e-vpadmin-reg', source: 'vp-admin', target: 'registry', type: 'orgEdge' },
-  { id: 'e-vpfin-dir', source: 'vp-finance', target: 'finance-dir', type: 'orgEdge' },
-  { id: 'e-vpac-agri', source: 'vp-academic', target: 'dean-agri', type: 'orgEdge' },
-  { id: 'e-vpac-media', source: 'vp-academic', target: 'dean-media', type: 'orgEdge' },
-  { id: 'e-vpac-arts', source: 'vp-academic', target: 'dean-arts', type: 'orgEdge' },
-  { id: 'e-vpac-social', source: 'vp-academic', target: 'dean-social', type: 'orgEdge' },
-  { id: 'e-vpac-tech', source: 'vp-academic', target: 'dean-tech', type: 'orgEdge' },
-  { id: 'e-vpac-econ', source: 'vp-academic', target: 'dean-econ', type: 'orgEdge' },
-  { id: 'e-vpac-exams', source: 'vp-academic', target: 'dean-exams', type: 'orgEdge' },
-  { id: 'e-vpac-grad', source: 'vp-academic', target: 'dean-grad', type: 'orgEdge' },
-  { id: 'e-vpac-res', source: 'vp-academic', target: 'dean-research', type: 'orgEdge' },
-  { id: 'e-agri-center', source: 'dean-agri', target: 'agri-center', type: 'orgEdge' },
-  { id: 'e-arts-folk', source: 'dean-arts', target: 'folk-center', type: 'orgEdge' },
-  { id: 'e-exams-arc', source: 'dean-exams', target: 'admin-research-center', type: 'orgEdge' },
-  { id: 'e-res-curr', source: 'dean-research', target: 'curriculum', type: 'orgEdge' },
-  { id: 'e-res-cont', source: 'dean-research', target: 'cont-edu', type: 'orgEdge' },
-  { id: 'e-res-lib', source: 'dean-research', target: 'library', type: 'orgEdge' },
-  { id: 'e-res-digital', source: 'dean-research', target: 'digital', type: 'orgEdge' },
-  { id: 'e-hr-diwan', source: 'hr', target: 'diwan', type: 'orgEdge' },
-  { id: 'e-it-eng', source: 'it-center', target: 'engineering', type: 'orgEdge' },
+  // رئيس → التدقيق (يسار)
+  { id: 'e-pres-audit',   source: 'president', target: 'audit',        type: 'orgEdge' },
+  // رئيس → مستشار (يسار)
+  { id: 'e-pres-advisor', source: 'president', target: 'advisor',      type: 'orgEdge' },
+  // رئيس → مساعد رئيس (يمين)
+  { id: 'e-pres-asst',    source: 'president', target: 'asst-pres',    type: 'orgEdge' },
+  // مستشار ↔ مكتب عمان (خط منقط أفقي - كما في الصورة)
+  { id: 'e-advisor-amman', source: 'advisor', target: 'amman-office',  type: 'orgEdge', style: { strokeDasharray: '8,4' } },
+  // President → VPs
+  { id: 'e-pres-vpadmin',  source: 'president', target: 'vp-admin',       type: 'orgEdge' },
+  { id: 'e-pres-vpfin',    source: 'president', target: 'vp-finance',     type: 'orgEdge' },
+  { id: 'e-pres-vpac',     source: 'president', target: 'vp-academic',    type: 'orgEdge' },
+  { id: 'e-pres-qual',     source: 'president', target: 'quality',        type: 'orgEdge' },
+  { id: 'e-pres-branch',   source: 'president', target: 'branch-dirs',    type: 'orgEdge' },
+  { id: 'e-pres-vpgaza',   source: 'president', target: 'vp-gaza',        type: 'orgEdge' },
+  { id: 'e-pres-pr',       source: 'president', target: 'pr',             type: 'orgEdge' },
+  { id: 'e-pres-student',  source: 'president', target: 'student-affairs',type: 'orgEdge' },
+  // VPs → Assistants
+  { id: 'e-vpadmin-asst',  source: 'vp-admin',   target: 'asst-vp-admin',    type: 'orgEdge' },
+  { id: 'e-vpfin-asst',    source: 'vp-finance', target: 'asst-vp-finance',  type: 'orgEdge' },
+  { id: 'e-vpac-asst',     source: 'vp-academic',target: 'asst-vp-academic', type: 'orgEdge' },
+  { id: 'e-vpgaza-asst',   source: 'vp-gaza',    target: 'asst-vp-gaza',     type: 'orgEdge' },
+  // Admin → departments
+  { id: 'e-vpadmin-it',    source: 'vp-admin', target: 'it-center',   type: 'orgEdge' },
+  { id: 'e-vpadmin-hr',    source: 'vp-admin', target: 'hr',          type: 'orgEdge' },
+  { id: 'e-vpadmin-proc',  source: 'vp-admin', target: 'procurement', type: 'orgEdge' },
+  { id: 'e-vpadmin-reg',   source: 'vp-admin', target: 'registry',    type: 'orgEdge' },
+  { id: 'e-vpadmin-diwan', source: 'vp-admin', target: 'diwan',       type: 'orgEdge' },
+  { id: 'e-vpadmin-eng',   source: 'vp-admin', target: 'engineering', type: 'orgEdge' },
+  // Finance → director
+  { id: 'e-vpfin-dir',     source: 'vp-finance', target: 'finance-dir', type: 'orgEdge' },
+  // Academic → Deans
+  { id: 'e-vpac-res',    source: 'vp-academic', target: 'dean-research', type: 'orgEdge' },
+  { id: 'e-vpac-grad',   source: 'vp-academic', target: 'dean-grad',     type: 'orgEdge' },
+  { id: 'e-vpac-exams',  source: 'vp-academic', target: 'dean-exams',    type: 'orgEdge' },
+  { id: 'e-vpac-econ',   source: 'vp-academic', target: 'dean-econ',     type: 'orgEdge' },
+  { id: 'e-vpac-tech',   source: 'vp-academic', target: 'dean-tech',     type: 'orgEdge' },
+  { id: 'e-vpac-social', source: 'vp-academic', target: 'dean-social',   type: 'orgEdge' },
+  { id: 'e-vpac-arts',   source: 'vp-academic', target: 'dean-arts',     type: 'orgEdge' },
+  { id: 'e-vpac-media',  source: 'vp-academic', target: 'dean-media',    type: 'orgEdge' },
+  { id: 'e-vpac-agri',   source: 'vp-academic', target: 'dean-agri',     type: 'orgEdge' },
+  // Dean sub-centers
+  { id: 'e-res-curr',    source: 'dean-research', target: 'curriculum',            type: 'orgEdge' },
+  { id: 'e-res-cont',    source: 'dean-research', target: 'cont-edu',              type: 'orgEdge' },
+  { id: 'e-res-lib',     source: 'dean-research', target: 'library',               type: 'orgEdge' },
+  { id: 'e-res-digital', source: 'dean-research', target: 'digital',               type: 'orgEdge' },
+  { id: 'e-exams-arc',   source: 'dean-exams',    target: 'admin-research-center', type: 'orgEdge' },
+  { id: 'e-arts-folk',   source: 'dean-arts',     target: 'folk-center',           type: 'orgEdge' },
+  { id: 'e-agri-center', source: 'dean-agri',     target: 'agri-center',           type: 'orgEdge' },
 ];
 
 
