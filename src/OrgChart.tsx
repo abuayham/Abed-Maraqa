@@ -18,19 +18,42 @@ interface Actions {
   onEdit: (n: OrgNode) => void;
   onAddChild: (id: string) => void;
   onDelete: (id: string) => void;
+  onMove: (draggedId: string, targetId: string) => void;
 }
 
 // ==================== NODE BOX ====================
 function NodeBox({ node, actions, size = 'md' }: { node: OrgNode; actions: Actions; size?: 'sm' | 'md' | 'lg' }) {
+  const [isDragOver, setIsDragOver] = useState(false);
   const clr = getClr(node.color);
+  
   const sizeClass =
     size === 'lg' ? 'min-w-[140px] max-w-[180px] text-[13px] px-4 py-3 font-bold' :
     size === 'sm' ? 'min-w-[90px]  max-w-[120px] text-[10px] px-2 py-1.5'          :
                     'min-w-[110px] max-w-[145px] text-[11px] px-3 py-2';
+                    
   return (
     <div dir="rtl"
+      draggable
+      onDragStart={(e) => {
+        e.dataTransfer.setData('text/plain', node.id);
+        e.dataTransfer.effectAllowed = 'move';
+      }}
+      onDragOver={(e) => {
+        e.preventDefault();
+        e.dataTransfer.dropEffect = 'move';
+        setIsDragOver(true);
+      }}
+      onDragLeave={() => setIsDragOver(false)}
+      onDrop={(e) => {
+        e.preventDefault();
+        setIsDragOver(false);
+        const draggedId = e.dataTransfer.getData('text/plain');
+        if (draggedId && draggedId !== node.id) {
+          actions.onMove(draggedId, node.id);
+        }
+      }}
       style={{ backgroundColor: clr.bg, color: clr.text, borderColor: 'rgba(255,255,255,0.5)' }}
-      className={`relative inline-flex group flex-col items-center justify-center ${sizeClass} font-semibold text-center rounded-lg shadow-md border-2 whitespace-pre-wrap leading-snug select-none`}
+      className={`relative inline-flex group flex-col items-center justify-center ${sizeClass} font-semibold text-center rounded-lg shadow-md border-2 whitespace-pre-wrap leading-snug select-none cursor-grab active:cursor-grabbing transition-transform ${isDragOver ? 'ring-4 ring-blue-500 scale-110 z-50' : 'hover:-translate-y-1'}`}
     >
       {node.title}
       <div className="absolute -top-9 left-1/2 -translate-x-1/2 opacity-0 group-hover:opacity-100 flex gap-0.5 bg-white px-1.5 py-1 rounded-xl shadow-2xl border border-gray-100 z-[100] transition-opacity pointer-events-none group-hover:pointer-events-auto whitespace-nowrap">
@@ -60,71 +83,55 @@ function TreeNode({ node, actions }: { node: OrgNode; actions: Actions }) {
 }
 
 // ==================== PRESIDENT SECTION ====================
-// Layout:
-//                    [root]
-//                      | (dashed)
-// [leftStaff]---+---[president]---[sibling]
-//               |
-//               +---[rightStaff0]
-//               +---[rightStaff1]
-//               |
-//              (to children tree)
-//
-// Uses absolute positioning so president always aligns with children center.
 function PresidentSection({ root, president, actions }: {
   root: OrgNode; president: OrgNode; actions: Actions;
 }) {
-  const ROOT_H    = 58;   // approx lg NodeBox height
+  const ROOT_H    = 58;   
   const DASHED_H  = 36;
   const PRES_H    = 58;
-  const STAFF_H   = 48;   // approx md NodeBox height
+  const STAFF_H   = 48;   
   const STAFF_GAP = 12;
-  const HLINE     = 36;   // horizontal branch line px
-  const PRES_HALF = 90;   // half of lg NodeBox width (approx 180px/2)
+  const HLINE     = 36;   
+  const PRES_HALF = 90;   
 
   const leftCount  = president.leftStaff?.length  ?? 0;
   const rightCount = president.rightStaff?.length ?? 0;
   const trunkH     = Math.max(leftCount, rightCount) * (STAFF_H + STAFF_GAP) + 24;
   const totalH     = ROOT_H + DASHED_H + PRES_H + trunkH + 4;
 
-  // Y positions
   const presTop    = ROOT_H + DASHED_H;
   const trunkTop   = presTop + PRES_H;
 
   return (
     <div style={{ position: 'relative', height: totalH, width: '100%' }}>
-
-      {/* ── CENTER AXIS: root → dashed line → president → trunk ── */}
+      {/* CENTER AXIS */}
       <div style={{ position: 'absolute', left: '50%', top: 0, transform: 'translateX(-50%)', display: 'flex', flexDirection: 'column', alignItems: 'center' }}>
         <NodeBox node={root} actions={actions} size="lg" />
-        {/* Dashed line */}
-        <div style={{ width: 2, height: DASHED_H, borderLeft: '2px dashed #374151', flexShrink: 0 }} />
+        <div style={{ width: 'var(--line-thickness, 2px)', height: DASHED_H, borderLeft: 'var(--line-thickness, 2px) dashed var(--line-color, #374151)', flexShrink: 0 }} />
         <NodeBox node={president} actions={actions} size="lg" />
-        {/* Solid trunk */}
-        <div style={{ position: 'relative', width: 2, height: trunkH, background: '#374151', flexShrink: 0 }}>
-          {/* Right staff branches off trunk */}
+        <div style={{ position: 'relative', width: 'var(--line-thickness, 2px)', height: trunkH, background: 'var(--line-color, #374151)', flexShrink: 0 }}>
           {president.rightStaff?.map((staff, idx) => (
-            <div key={staff.id} style={{ position: 'absolute', top: 12 + idx * (STAFF_H + STAFF_GAP), left: 2, display: 'flex', alignItems: 'center' }}>
-              <div style={{ width: HLINE, height: 2, background: '#374151', flexShrink: 0 }} />
+            <div key={staff.id} style={{ position: 'absolute', top: 12 + idx * (STAFF_H + STAFF_GAP), left: 'var(--line-thickness, 2px)', display: 'flex', alignItems: 'center' }}>
+              <div style={{ width: HLINE, height: 'var(--line-thickness, 2px)', background: 'var(--line-color, #374151)', flexShrink: 0 }} />
               <NodeBox node={staff} actions={actions} />
             </div>
           ))}
         </div>
       </div>
 
-      {/* ── SIBLING (مجلس الجامعة) ── right of president at same Y */}
+      {/* SIBLING */}
       {president.leftSibling && (
         <div style={{ position: 'absolute', top: presTop + PRES_H / 2, left: `calc(50% + ${PRES_HALF}px)`, transform: 'translateY(-50%)', display: 'flex', alignItems: 'center' }}>
-          <div style={{ width: 40, height: 2, background: '#374151', flexShrink: 0 }} />
+          <div style={{ width: 40, height: 'var(--line-thickness, 2px)', background: 'var(--line-color, #374151)', flexShrink: 0 }} />
           <NodeBox node={president.leftSibling} actions={actions} size="lg" />
         </div>
       )}
 
-      {/* ── LEFT STAFF: branches off LEFT side of trunk ── */}
+      {/* LEFT STAFF */}
       {president.leftStaff?.map((staff, idx) => (
-        <div key={staff.id} style={{ position: 'absolute', top: trunkTop + 12 + idx * (STAFF_H + STAFF_GAP), right: `calc(50% + 2px)`, display: 'flex', alignItems: 'center' }}>
+        <div key={staff.id} style={{ position: 'absolute', top: trunkTop + 12 + idx * (STAFF_H + STAFF_GAP), right: `calc(50% + var(--line-thickness, 2px))`, display: 'flex', alignItems: 'center' }}>
           <NodeBox node={staff} actions={actions} />
-          <div style={{ width: HLINE, height: 2, background: '#374151', flexShrink: 0 }} />
+          <div style={{ width: HLINE, height: 'var(--line-thickness, 2px)', background: 'var(--line-color, #374151)', flexShrink: 0 }} />
         </div>
       ))}
     </div>
@@ -157,20 +164,55 @@ export function OrgChart({ data, onUpdate }: { data: OrgNode; onUpdate: (d: OrgN
     const r = walkDelete(data, id);
     if (r) onUpdate(r);
   };
+  
+  const handleMove = (draggedId: string, targetId: string) => {
+    if (draggedId === data.id) return alert('لا يمكن نقل الجذع الرئيسي');
+    
+    // Find the node to move
+    let draggedNode: OrgNode | null = null;
+    const findNode = (tree: OrgNode) => {
+      if (tree.id === draggedId) draggedNode = { ...tree };
+      tree.children?.forEach(findNode);
+      tree.leftStaff?.forEach(findNode);
+      tree.rightStaff?.forEach(findNode);
+      if (tree.leftSibling) findNode(tree.leftSibling);
+    };
+    findNode(data);
+    
+    if (!draggedNode) return;
+    
+    // Prevent moving a node into its own children (circular reference)
+    let isTargetChild = false;
+    const checkIfChild = (tree: OrgNode) => {
+      if (tree.id === targetId) isTargetChild = true;
+      tree.children?.forEach(checkIfChild);
+      tree.leftStaff?.forEach(checkIfChild);
+      tree.rightStaff?.forEach(checkIfChild);
+      if (tree.leftSibling) checkIfChild(tree.leftSibling);
+    };
+    checkIfChild(draggedNode);
+    if (isTargetChild) {
+      return alert('لا يمكن نقل عنصر إلى داخل أحد الفروع التابعة له!');
+    }
 
-  const actions: Actions = { onEdit: handleEdit, onAddChild: handleAdd, onDelete: handleDelete };
+    // Delete from old place and add to new place as standard child
+    const treeAfterDelete = walkDelete(data, draggedId);
+    if (treeAfterDelete) {
+      const treeAfterMove = walkAdd(treeAfterDelete, targetId, draggedNode);
+      onUpdate(treeAfterMove);
+    }
+  };
+
+  const actions: Actions = { onEdit: handleEdit, onAddChild: handleAdd, onDelete: handleDelete, onMove: handleMove };
   const president = data.children?.[0];
 
   return (
-    <div className="w-full overflow-auto bg-[#f8f9fa]">
-      <div dir="ltr" style={{ display: 'inline-flex', flexDirection: 'column', alignItems: 'center', padding: '48px 80px 80px', minWidth: '100%' }}>
+    <div className="w-full h-full min-h-[600px] overflow-auto flex justify-center items-start">
+      <div dir="ltr" style={{ display: 'inline-flex', flexDirection: 'column', alignItems: 'center', padding: '48px 80px 120px', minWidth: 'max-content' }}>
 
         {president ? (
           <>
-            {/* Top section: absolute-positioned for correct alignment */}
             <PresidentSection root={data} president={president} actions={actions} />
-
-            {/* Children CSS tree — centered below the trunk */}
             {(president.children?.length ?? 0) > 0 && (
               <ul className="org-ul">
                 {president.children!.map(child => <TreeNode key={child.id} node={child} actions={actions} />)}
@@ -215,3 +257,4 @@ export function OrgChart({ data, onUpdate }: { data: OrgNode; onUpdate: (d: OrgN
     </div>
   );
 }
+

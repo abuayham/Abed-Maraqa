@@ -26,10 +26,10 @@
   position: absolute;
   top: 0;
   left: 50%;
-  transform: translateX(-1px);
-  width: 2px;
+  transform: translateX(calc(var(--line-thickness, 2px) / -2));
+  width: var(--line-thickness, 2px);
   height: 28px;
-  background: #374151;
+  background: var(--line-color, #374151);
 }
 
 .org-li {
@@ -54,13 +54,13 @@
 
 .org-li::before {
   right: 50%;
-  border-top: 2px solid #374151;
+  border-top: var(--line-thickness, 2px) solid var(--line-color, #374151);
 }
 
 .org-li::after {
   left: 50%;
-  border-top: 2px solid #374151;
-  border-left: 2px solid #374151;
+  border-top: var(--line-thickness, 2px) solid var(--line-color, #374151);
+  border-left: var(--line-thickness, 2px) solid var(--line-color, #374151);
 }
 
 /* Only child - no connector needed */
@@ -85,6 +85,21 @@
   display: none;
 }
 .org-li:last-child::before {
-  border-right: 2px solid #374151;
+  border-right: var(--line-thickness, 2px) solid var(--line-color, #374151);
   border-radius: 0 5px 0 0;
+}
+
+/* Base font sizes based on offset */
+.org-chart-wrapper {
+  font-size: calc(1rem + var(--font-size-offset, 0px));
+}
+
+.org-chart-wrapper .text-\[10px\] {
+  font-size: calc(10px + var(--font-size-offset, 0px)) !important;
+}
+.org-chart-wrapper .text-\[11px\] {
+  font-size: calc(11px + var(--font-size-offset, 0px)) !important;
+}
+.org-chart-wrapper .text-\[13px\] {
+  font-size: calc(13px + var(--font-size-offset, 0px)) !important;
 }
