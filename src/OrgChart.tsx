@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { Edit2, Plus, Trash2, X, Check } from 'lucide-react';
 import type { OrgNode } from './data';
 
@@ -18,20 +18,24 @@ interface Actions {
   onEdit: (n: OrgNode) => void;
   onAddChild: (id: string) => void;
   onDelete: (id: string) => void;
-  onMove: (draggedId: string, targetId: string) => void;
+  onMove: (draggedId: string, targetId: string, placement: 'child' | 'leftStaff' | 'rightStaff') => void;
 }
 
 // ==================== NODE BOX ====================
-function NodeBox({ node, actions, size = 'md' }: { node: OrgNode; actions: Actions; size?: 'sm' | 'md' | 'lg' }) {
+function NodeBox({ node, actions, size = 'md', isActive, onToggleMenu }: { node: OrgNode; actions: Actions; size?: 'sm' | 'md' | 'lg'; isActive: boolean; onToggleMenu: (e: React.MouseEvent) => void }) {
   const [isDragOver, setIsDragOver] = useState(false);
-  const [dragPosition, setDragPosition] = useState<'top' | 'bottom' | 'middle'>('middle');
+  const [dragPosition, setDragPosition] = useState<'left' | 'right' | 'bottom'>('bottom');
   const clr = getClr(node.color);
   
-  const sizeClass = size === 'lg' ? 'size-lg text-[13px] font-bold' : size === 'sm' ? 'size-sm text-[10px]' : 'text-[11px]';
+  const sizeClass =
+    size === 'lg' ? 'min-w-[140px] max-w-[180px] text-[13px] px-4 py-3 font-bold' :
+    size === 'sm' ? 'min-w-[90px]  max-w-[120px] text-[10px] px-2 py-1.5'          :
+                    'min-w-[110px] max-w-[145px] text-[11px] px-3 py-2';
                     
   return (
     <div dir="rtl"
       draggable
+      onClick={onToggleMenu}
       onDragStart={(e) => {
         e.dataTransfer.setData('text/plain', node.id);
         e.dataTransfer.effectAllowed = 'move';
@@ -40,12 +44,13 @@ function NodeBox({ node, actions, size = 'md' }: { node: OrgNode; actions: Actio
         e.preventDefault();
         e.dataTransfer.dropEffect = 'move';
         setIsDragOver(true);
-        // Determine position based on mouse Y
+        // Determine position based on mouse X and Y
         const rect = e.currentTarget.getBoundingClientRect();
-        const y = e.clientY - rect.top;
-        if (y < rect.height * 0.25) setDragPosition('top');
-        else if (y > rect.height * 0.75) setDragPosition('bottom');
-        else setDragPosition('middle');
+        const x = e.clientX - rect.left;
+        
+        if (x < rect.width * 0.33) setDragPosition('left');
+        else if (x > rect.width * 0.66) setDragPosition('right');
+        else setDragPosition('bottom');
       }}
       onDragLeave={() => setIsDragOver(false)}
       onDrop={(e) => {
@@ -53,7 +58,8 @@ function NodeBox({ node, actions, size = 'md' }: { node: OrgNode; actions: Actio
         setIsDragOver(false);
         const draggedId = e.dataTransfer.getData('text/plain');
         if (draggedId && draggedId !== node.id) {
-          actions.onMove(draggedId, node.id);
+          const placement = dragPosition === 'left' ? 'leftStaff' : dragPosition === 'right' ? 'rightStaff' : 'child';
+          actions.onMove(draggedId, node.id, placement);
         }
       }}
       style={{ 
@@ -62,38 +68,41 @@ function NodeBox({ node, actions, size = 'md' }: { node: OrgNode; actions: Actio
         borderColor: 'rgba(255,255,255,0.5)',
         textAlign: node.textAlign || 'center'
       }}
-      className={`org-node-box relative inline-flex group flex-col items-center justify-center ${sizeClass} font-semibold rounded-lg shadow-md border-2 whitespace-pre-wrap leading-snug select-none cursor-grab active:cursor-grabbing transition-transform ${isDragOver ? 'scale-110 z-50 ring-4 ring-blue-500' : 'hover:-translate-y-1'}`}
+      className={`relative inline-flex flex-col items-center justify-center ${sizeClass} font-semibold rounded-lg shadow-md border-2 whitespace-pre-wrap leading-snug select-none cursor-pointer active:cursor-grabbing transition-transform ${isDragOver ? 'scale-110 z-50 ring-4 ring-blue-500' : 'hover:-translate-y-1'}`}
     >
       {node.title}
       
       {/* Drop Indicator */}
       {isDragOver && (
-        <div className={`absolute left-0 right-0 h-1 bg-white shadow-lg pointer-events-none rounded-full z-[200] ${dragPosition === 'top' ? '-top-2' : dragPosition === 'bottom' ? '-bottom-2' : 'top-1/2 -translate-y-1/2 opacity-50'}`} />
+        <div className={`absolute bg-blue-500 shadow-lg pointer-events-none rounded-full z-[200] ${
+          dragPosition === 'left' ? 'w-2 top-0 bottom-0 -left-3' : 
+          dragPosition === 'right' ? 'w-2 top-0 bottom-0 -right-3' : 
+          'h-2 left-0 right-0 -bottom-3'
+        }`} />
       )}
 
-      {/* Invisible hover bridge to prevent menu from disappearing */}
-      <div className="absolute -top-12 left-0 right-0 h-12 bg-transparent z-[90]" />
-
-      <div className="absolute -top-10 left-1/2 -translate-x-1/2 opacity-0 group-hover:opacity-100 flex gap-0.5 bg-white px-1.5 py-1.5 rounded-xl shadow-2xl border border-gray-100 z-[100] transition-opacity duration-200 pointer-events-none group-hover:pointer-events-auto whitespace-nowrap">
-        <button onClick={(e) => { e.stopPropagation(); actions.onEdit(node); }} className="flex items-center gap-1 px-2 py-1 text-[11px] text-blue-600 hover:bg-blue-50 rounded-lg font-medium transition"><Edit2 size={12}/> تعديل</button>
-        <div className="w-px bg-gray-200 mx-0.5"/>
-        <button onClick={(e) => { e.stopPropagation(); actions.onAddChild(node.id); }} className="flex items-center gap-1 px-2 py-1 text-[11px] text-green-600 hover:bg-green-50 rounded-lg font-medium transition"><Plus size={12}/> إضافة</button>
-        <div className="w-px bg-gray-200 mx-0.5"/>
-        <button onClick={(e) => { e.stopPropagation(); actions.onDelete(node.id); }} className="flex items-center gap-1 px-2 py-1 text-[11px] text-red-600 hover:bg-red-50 rounded-lg font-medium transition"><Trash2 size={12}/> حذف</button>
-      </div>
+      {isActive && (
+        <div className="absolute -top-10 left-1/2 -translate-x-1/2 flex gap-0.5 bg-white px-1.5 py-1.5 rounded-xl shadow-2xl border border-gray-100 z-[100] whitespace-nowrap" onClick={e => e.stopPropagation()}>
+          <button onClick={() => actions.onEdit(node)} className="flex items-center gap-1 px-2 py-1 text-[11px] text-blue-600 hover:bg-blue-50 rounded-lg font-medium transition"><Edit2 size={12}/> تعديل</button>
+          <div className="w-px bg-gray-200 mx-0.5"/>
+          <button onClick={() => actions.onAddChild(node.id)} className="flex items-center gap-1 px-2 py-1 text-[11px] text-green-600 hover:bg-green-50 rounded-lg font-medium transition"><Plus size={12}/> إضافة</button>
+          <div className="w-px bg-gray-200 mx-0.5"/>
+          <button onClick={() => actions.onDelete(node.id)} className="flex items-center gap-1 px-2 py-1 text-[11px] text-red-600 hover:bg-red-50 rounded-lg font-medium transition"><Trash2 size={12}/> حذف</button>
+        </div>
+      )}
     </div>
   );
 }
 
 // ==================== RECURSIVE TREE NODE ====================
-function TreeNode({ node, actions }: { node: OrgNode; actions: Actions }) {
+function TreeNode({ node, actions, activeMenuId, setActiveMenuId }: { node: OrgNode; actions: Actions; activeMenuId: string | null; setActiveMenuId: (id: string | null) => void }) {
   const hasChildren = (node.children?.length ?? 0) > 0;
   return (
     <li className="org-li">
-      <NodeBox node={node} actions={actions} />
+      <NodeBox node={node} actions={actions} size="md" isActive={activeMenuId === node.id} onToggleMenu={(e) => { e.stopPropagation(); setActiveMenuId(node.id); }} />
       {hasChildren && (
         <ul className="org-ul">
-          {node.children!.map(child => <TreeNode key={child.id} node={child} actions={actions} />)}
+          {node.children!.map(child => <TreeNode key={child.id} node={child} actions={actions} activeMenuId={activeMenuId} setActiveMenuId={setActiveMenuId} />)}
         </ul>
       )}
     </li>
@@ -101,8 +110,8 @@ function TreeNode({ node, actions }: { node: OrgNode; actions: Actions }) {
 }
 
 // ==================== PRESIDENT SECTION ====================
-function PresidentSection({ root, president, actions }: {
-  root: OrgNode; president: OrgNode; actions: Actions;
+function PresidentSection({ root, president, actions, activeMenuId, setActiveMenuId }: {
+  root: OrgNode; president: OrgNode; actions: Actions; activeMenuId: string | null; setActiveMenuId: (id: string | null) => void;
 }) {
   const ROOT_H    = 58;   
   const DASHED_H  = 36;
@@ -124,14 +133,14 @@ function PresidentSection({ root, president, actions }: {
     <div style={{ position: 'relative', height: totalH, width: '100%' }}>
       {/* CENTER AXIS */}
       <div style={{ position: 'absolute', left: '50%', top: 0, transform: 'translateX(-50%)', display: 'flex', flexDirection: 'column', alignItems: 'center' }}>
-        <NodeBox node={root} actions={actions} size="lg" />
+        <NodeBox node={root} actions={actions} size="lg" isActive={activeMenuId === root.id} onToggleMenu={(e) => { e.stopPropagation(); setActiveMenuId(root.id); }} />
         <div style={{ width: 'var(--line-thickness, 2px)', height: DASHED_H, borderLeft: 'var(--line-thickness, 2px) dashed var(--line-color, #374151)', flexShrink: 0 }} />
-        <NodeBox node={president} actions={actions} size="lg" />
+        <NodeBox node={president} actions={actions} size="lg" isActive={activeMenuId === president.id} onToggleMenu={(e) => { e.stopPropagation(); setActiveMenuId(president.id); }} />
         <div style={{ position: 'relative', width: 'var(--line-thickness, 2px)', height: trunkH, background: 'var(--line-color, #374151)', flexShrink: 0 }}>
           {president.rightStaff?.map((staff, idx) => (
             <div key={staff.id} style={{ position: 'absolute', top: 12 + idx * (STAFF_H + STAFF_GAP), left: 'var(--line-thickness, 2px)', display: 'flex', alignItems: 'center' }}>
               <div style={{ width: HLINE, height: 'var(--line-thickness, 2px)', background: 'var(--line-color, #374151)', flexShrink: 0 }} />
-              <NodeBox node={staff} actions={actions} />
+              <NodeBox node={staff} actions={actions} isActive={activeMenuId === staff.id} onToggleMenu={(e) => { e.stopPropagation(); setActiveMenuId(staff.id); }} />
             </div>
           ))}
         </div>
@@ -141,14 +150,14 @@ function PresidentSection({ root, president, actions }: {
       {president.leftSibling && (
         <div style={{ position: 'absolute', top: presTop + PRES_H / 2, left: `calc(50% + ${PRES_HALF}px)`, transform: 'translateY(-50%)', display: 'flex', alignItems: 'center' }}>
           <div style={{ width: 40, height: 'var(--line-thickness, 2px)', background: 'var(--line-color, #374151)', flexShrink: 0 }} />
-          <NodeBox node={president.leftSibling} actions={actions} size="lg" />
+          <NodeBox node={president.leftSibling} actions={actions} size="lg" isActive={activeMenuId === president.leftSibling.id} onToggleMenu={(e) => { e.stopPropagation(); setActiveMenuId(president.leftSibling!.id); }} />
         </div>
       )}
 
       {/* LEFT STAFF */}
       {president.leftStaff?.map((staff, idx) => (
         <div key={staff.id} style={{ position: 'absolute', top: trunkTop + 12 + idx * (STAFF_H + STAFF_GAP), right: `calc(50% + var(--line-thickness, 2px))`, display: 'flex', alignItems: 'center' }}>
-          <NodeBox node={staff} actions={actions} />
+          <NodeBox node={staff} actions={actions} isActive={activeMenuId === staff.id} onToggleMenu={(e) => { e.stopPropagation(); setActiveMenuId(staff.id); }} />
           <div style={{ width: HLINE, height: 'var(--line-thickness, 2px)', background: 'var(--line-color, #374151)', flexShrink: 0 }} />
         </div>
       ))}
@@ -159,14 +168,26 @@ function PresidentSection({ root, president, actions }: {
 // ==================== MAIN COMPONENT ====================
 export function OrgChart({ data, onUpdate }: { data: OrgNode; onUpdate: (d: OrgNode) => void }) {
   const [editingNode, setEditingNode] = useState<OrgNode | null>(null);
+  const [activeMenuId, setActiveMenuId] = useState<string | null>(null);
+
+  // Close menu when clicking outside
+  useEffect(() => {
+    const handleClick = () => setActiveMenuId(null);
+    document.addEventListener('click', handleClick);
+    return () => document.removeEventListener('click', handleClick);
+  }, []);
 
   const walkUpdate = (tree: OrgNode, id: string, patch: Partial<OrgNode>): OrgNode => {
     if (tree.id === id) return { ...tree, ...patch };
     return { ...tree, children: tree.children?.map(c => walkUpdate(c, id, patch)), leftStaff: tree.leftStaff?.map(c => walkUpdate(c, id, patch)), rightStaff: tree.rightStaff?.map(c => walkUpdate(c, id, patch)), leftSibling: tree.leftSibling ? walkUpdate(tree.leftSibling, id, patch) : undefined };
   };
-  const walkAdd = (tree: OrgNode, pid: string, node: OrgNode): OrgNode => {
-    if (tree.id === pid) return { ...tree, children: [...(tree.children ?? []), node] };
-    return { ...tree, children: tree.children?.map(c => walkAdd(c, pid, node)), leftStaff: tree.leftStaff?.map(c => walkAdd(c, pid, node)), rightStaff: tree.rightStaff?.map(c => walkAdd(c, pid, node)), leftSibling: tree.leftSibling ? walkAdd(tree.leftSibling, pid, node) : undefined };
+  const walkAdd = (tree: OrgNode, pid: string, node: OrgNode, placement: 'child' | 'leftStaff' | 'rightStaff' = 'child'): OrgNode => {
+    if (tree.id === pid) {
+      if (placement === 'leftStaff') return { ...tree, leftStaff: [...(tree.leftStaff ?? []), node] };
+      if (placement === 'rightStaff') return { ...tree, rightStaff: [...(tree.rightStaff ?? []), node] };
+      return { ...tree, children: [...(tree.children ?? []), node] };
+    }
+    return { ...tree, children: tree.children?.map(c => walkAdd(c, pid, node, placement)), leftStaff: tree.leftStaff?.map(c => walkAdd(c, pid, node, placement)), rightStaff: tree.rightStaff?.map(c => walkAdd(c, pid, node, placement)), leftSibling: tree.leftSibling ? walkAdd(tree.leftSibling, pid, node, placement) : undefined };
   };
   const walkDelete = (tree: OrgNode, id: string): OrgNode | null => {
     if (tree.id === id) return null;
@@ -183,10 +204,9 @@ export function OrgChart({ data, onUpdate }: { data: OrgNode; onUpdate: (d: OrgN
     if (r) onUpdate(r);
   };
   
-  const handleMove = (draggedId: string, targetId: string) => {
+  const handleMove = (draggedId: string, targetId: string, placement: 'child' | 'leftStaff' | 'rightStaff') => {
     if (draggedId === data.id) return alert('لا يمكن نقل الجذع الرئيسي');
     
-    // Find the node to move
     let draggedNode: OrgNode | null = null;
     const findNode = (tree: OrgNode) => {
       if (tree.id === draggedId) draggedNode = { ...tree };
@@ -199,7 +219,6 @@ export function OrgChart({ data, onUpdate }: { data: OrgNode; onUpdate: (d: OrgN
     
     if (!draggedNode) return;
     
-    // Prevent moving a node into its own children (circular reference)
     let isTargetChild = false;
     const checkIfChild = (tree: OrgNode) => {
       if (tree.id === targetId) isTargetChild = true;
@@ -209,14 +228,11 @@ export function OrgChart({ data, onUpdate }: { data: OrgNode; onUpdate: (d: OrgN
       if (tree.leftSibling) checkIfChild(tree.leftSibling);
     };
     checkIfChild(draggedNode);
-    if (isTargetChild) {
-      return alert('لا يمكن نقل عنصر إلى داخل أحد الفروع التابعة له!');
-    }
+    if (isTargetChild) return alert('لا يمكن نقل عنصر إلى داخل أحد الفروع التابعة له!');
 
-    // Delete from old place and add to new place as standard child
     const treeAfterDelete = walkDelete(data, draggedId);
     if (treeAfterDelete) {
-      const treeAfterMove = walkAdd(treeAfterDelete, targetId, draggedNode);
+      const treeAfterMove = walkAdd(treeAfterDelete, targetId, draggedNode, placement);
       onUpdate(treeAfterMove);
     }
   };
@@ -230,15 +246,15 @@ export function OrgChart({ data, onUpdate }: { data: OrgNode; onUpdate: (d: OrgN
 
         {president ? (
           <>
-            <PresidentSection root={data} president={president} actions={actions} />
+            <PresidentSection root={data} president={president} actions={actions} activeMenuId={activeMenuId} setActiveMenuId={setActiveMenuId} />
             {(president.children?.length ?? 0) > 0 && (
               <ul className="org-ul">
-                {president.children!.map(child => <TreeNode key={child.id} node={child} actions={actions} />)}
+                {president.children!.map(child => <TreeNode key={child.id} node={child} actions={actions} activeMenuId={activeMenuId} setActiveMenuId={setActiveMenuId} />)}
               </ul>
             )}
           </>
         ) : (
-          <NodeBox node={data} actions={actions} size="lg" />
+          <NodeBox node={data} actions={actions} size="sm" isActive={activeMenuId === data.id} onToggleMenu={(e) => { e.stopPropagation(); setActiveMenuId(data.id); }} />
         )}
       </div>
 

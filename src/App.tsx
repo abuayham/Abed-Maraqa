@@ -18,8 +18,6 @@ function App() {
     lineThickness: 2,
     lineColor: '#374151',
     fontSizeOffset: 0,
-    boxWidth: 140,
-    boxPadding: 8,
     showArrows: false
   });
 
@@ -132,9 +130,7 @@ function App() {
     <div className="min-h-screen bg-gray-50 flex flex-col font-sans" style={{
       '--line-thickness': `${settings.lineThickness}px`,
       '--line-color': settings.lineColor,
-      '--font-size-offset': `${settings.fontSizeOffset}px`,
-      '--box-width': `${settings.boxWidth}px`,
-      '--box-padding': `${settings.boxPadding}px`
+      '--font-size-offset': `${settings.fontSizeOffset}px`
     } as any}>
       <div className={settings.showArrows ? 'show-arrows' : ''}>
       <header className="bg-white shadow-sm p-4 flex justify-between items-center z-10 sticky top-0 border-b">
@@ -235,18 +231,6 @@ function App() {
               <input type="range" min="-4" max="8" step="1" value={settings.fontSizeOffset} onChange={e => setSettings({ ...settings, fontSizeOffset: parseInt(e.target.value) })} className="w-full accent-blue-600" />
             </div>
 
-            <hr className="my-4" />
-
-            <div>
-              <label className="block text-sm font-semibold text-gray-700 mb-3">عرض المستطيل ({settings.boxWidth}px)</label>
-              <input type="range" min="80" max="250" step="5" value={settings.boxWidth} onChange={e => setSettings({ ...settings, boxWidth: parseInt(e.target.value) })} className="w-full accent-blue-600" />
-            </div>
-
-            <div>
-              <label className="block text-sm font-semibold text-gray-700 mb-3">التباعد الداخلي (Padding) ({settings.boxPadding}px)</label>
-              <input type="range" min="2" max="24" step="2" value={settings.boxPadding} onChange={e => setSettings({ ...settings, boxPadding: parseInt(e.target.value) })} className="w-full accent-blue-600" />
-            </div>
-
             <div>
               <label className="flex items-center gap-3 text-sm font-semibold text-gray-700 cursor-pointer">
                 <input type="checkbox" checked={settings.showArrows} onChange={e => setSettings({ ...settings, showArrows: e.target.checked })} className="w-4 h-4 accent-blue-600 rounded" />
@@ -256,7 +240,7 @@ function App() {
           </div>
           
           <div className="pt-6 border-t mt-4">
-            <button onClick={() => setSettings({ lineThickness: 2, lineColor: '#374151', fontSizeOffset: 0, boxWidth: 140, boxPadding: 8, showArrows: false })} className="w-full py-2.5 text-sm font-semibold text-gray-600 border-2 border-gray-200 rounded-xl hover:bg-gray-50 transition">إعادة ضبط المظهر</button>
+            <button onClick={() => setSettings({ lineThickness: 2, lineColor: '#374151', fontSizeOffset: 0, showArrows: false })} className="w-full py-2.5 text-sm font-semibold text-gray-600 border-2 border-gray-200 rounded-xl hover:bg-gray-50 transition">إعادة ضبط المظهر</button>
           </div>
         </div>
       )}
