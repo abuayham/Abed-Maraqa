@@ -88,7 +88,9 @@ function App() {
     };
     
     traverse(orgNode);
-    return getLayoutedElements(newNodes, newEdges);
+    const result = getLayoutedElements(newNodes, newEdges);
+    console.log("convertLegacyData result:", result);
+    return result;
   };
 
   const fetchData = async () => {
@@ -201,7 +203,7 @@ function App() {
         <div>
           <h1 className="text-2xl font-bold text-gray-800">الهيكل التنظيمي الاحترافي</h1>
           <div className="flex items-center gap-2 mt-1">
-            <p className="text-sm text-gray-500">متصل بـ Supabase</p>
+            <p className="text-sm text-gray-500">متصل بـ Supabase (عقد: {nodes.length})</p>
             <span className="text-xs text-gray-400">|</span>
             <div className={`text-xs flex items-center gap-1 font-medium ${
               saveStatus === 'saved' ? 'text-green-600' : 
@@ -254,8 +256,8 @@ function App() {
         </div>
       </header>
       
-      <main className="flex-1 w-full overflow-auto relative" onClick={() => setExportMenuOpen(false)}>
-        <div id="org-chart-container" className="w-full h-full org-chart-wrapper">
+      <main className="w-full h-[calc(100vh-70px)] overflow-hidden relative" onClick={() => setExportMenuOpen(false)}>
+        <div id="org-chart-container" className="w-full h-full org-chart-wrapper relative">
            {loading ? (
              <div className="flex justify-center items-center h-full text-gray-500">جاري التحميل...</div>
            ) : (
