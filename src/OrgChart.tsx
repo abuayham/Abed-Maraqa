@@ -24,12 +24,10 @@ interface Actions {
 // ==================== NODE BOX ====================
 function NodeBox({ node, actions, size = 'md' }: { node: OrgNode; actions: Actions; size?: 'sm' | 'md' | 'lg' }) {
   const [isDragOver, setIsDragOver] = useState(false);
+  const [dragPosition, setDragPosition] = useState<'top' | 'bottom' | 'middle'>('middle');
   const clr = getClr(node.color);
   
-  const sizeClass =
-    size === 'lg' ? 'min-w-[140px] max-w-[180px] text-[13px] px-4 py-3 font-bold' :
-    size === 'sm' ? 'min-w-[90px]  max-w-[120px] text-[10px] px-2 py-1.5'          :
-                    'min-w-[110px] max-w-[145px] text-[11px] px-3 py-2';
+  const sizeClass = size === 'lg' ? 'size-lg text-[13px] font-bold' : size === 'sm' ? 'size-sm text-[10px]' : 'text-[11px]';
                     
   return (
     <div dir="rtl"
@@ -42,6 +40,12 @@ function NodeBox({ node, actions, size = 'md' }: { node: OrgNode; actions: Actio
         e.preventDefault();
         e.dataTransfer.dropEffect = 'move';
         setIsDragOver(true);
+        // Determine position based on mouse Y
+        const rect = e.currentTarget.getBoundingClientRect();
+        const y = e.clientY - rect.top;
+        if (y < rect.height * 0.25) setDragPosition('top');
+        else if (y > rect.height * 0.75) setDragPosition('bottom');
+        else setDragPosition('middle');
       }}
       onDragLeave={() => setIsDragOver(false)}
       onDrop={(e) => {
@@ -52,16 +56,30 @@ function NodeBox({ node, actions, size = 'md' }: { node: OrgNode; actions: Actio
           actions.onMove(draggedId, node.id);
         }
       }}
-      style={{ backgroundColor: clr.bg, color: clr.text, borderColor: 'rgba(255,255,255,0.5)' }}
-      className={`relative inline-flex group flex-col items-center justify-center ${sizeClass} font-semibold text-center rounded-lg shadow-md border-2 whitespace-pre-wrap leading-snug select-none cursor-grab active:cursor-grabbing transition-transform ${isDragOver ? 'ring-4 ring-blue-500 scale-110 z-50' : 'hover:-translate-y-1'}`}
+      style={{ 
+        backgroundColor: clr.bg, 
+        color: clr.text, 
+        borderColor: 'rgba(255,255,255,0.5)',
+        textAlign: node.textAlign || 'center'
+      }}
+      className={`org-node-box relative inline-flex group flex-col items-center justify-center ${sizeClass} font-semibold rounded-lg shadow-md border-2 whitespace-pre-wrap leading-snug select-none cursor-grab active:cursor-grabbing transition-transform ${isDragOver ? 'scale-110 z-50 ring-4 ring-blue-500' : 'hover:-translate-y-1'}`}
     >
       {node.title}
-      <div className="absolute -top-9 left-1/2 -translate-x-1/2 opacity-0 group-hover:opacity-100 flex gap-0.5 bg-white px-1.5 py-1 rounded-xl shadow-2xl border border-gray-100 z-[100] transition-opacity pointer-events-none group-hover:pointer-events-auto whitespace-nowrap">
-        <button onClick={(e) => { e.stopPropagation(); actions.onEdit(node); }} className="flex items-center gap-1 px-1.5 py-0.5 text-[10px] text-blue-600 hover:bg-blue-50 rounded-lg font-medium transition"><Edit2 size={10}/> تعديل</button>
-        <div className="w-px bg-gray-200"/>
-        <button onClick={(e) => { e.stopPropagation(); actions.onAddChild(node.id); }} className="flex items-center gap-1 px-1.5 py-0.5 text-[10px] text-green-600 hover:bg-green-50 rounded-lg font-medium transition"><Plus size={10}/> إضافة</button>
-        <div className="w-px bg-gray-200"/>
-        <button onClick={(e) => { e.stopPropagation(); actions.onDelete(node.id); }} className="flex items-center gap-1 px-1.5 py-0.5 text-[10px] text-red-600 hover:bg-red-50 rounded-lg font-medium transition"><Trash2 size={10}/> حذف</button>
+      
+      {/* Drop Indicator */}
+      {isDragOver && (
+        <div className={`absolute left-0 right-0 h-1 bg-white shadow-lg pointer-events-none rounded-full z-[200] ${dragPosition === 'top' ? '-top-2' : dragPosition === 'bottom' ? '-bottom-2' : 'top-1/2 -translate-y-1/2 opacity-50'}`} />
+      )}
+
+      {/* Invisible hover bridge to prevent menu from disappearing */}
+      <div className="absolute -top-12 left-0 right-0 h-12 bg-transparent z-[90]" />
+
+      <div className="absolute -top-10 left-1/2 -translate-x-1/2 opacity-0 group-hover:opacity-100 flex gap-0.5 bg-white px-1.5 py-1.5 rounded-xl shadow-2xl border border-gray-100 z-[100] transition-opacity duration-200 pointer-events-none group-hover:pointer-events-auto whitespace-nowrap">
+        <button onClick={(e) => { e.stopPropagation(); actions.onEdit(node); }} className="flex items-center gap-1 px-2 py-1 text-[11px] text-blue-600 hover:bg-blue-50 rounded-lg font-medium transition"><Edit2 size={12}/> تعديل</button>
+        <div className="w-px bg-gray-200 mx-0.5"/>
+        <button onClick={(e) => { e.stopPropagation(); actions.onAddChild(node.id); }} className="flex items-center gap-1 px-2 py-1 text-[11px] text-green-600 hover:bg-green-50 rounded-lg font-medium transition"><Plus size={12}/> إضافة</button>
+        <div className="w-px bg-gray-200 mx-0.5"/>
+        <button onClick={(e) => { e.stopPropagation(); actions.onDelete(node.id); }} className="flex items-center gap-1 px-2 py-1 text-[11px] text-red-600 hover:bg-red-50 rounded-lg font-medium transition"><Trash2 size={12}/> حذف</button>
       </div>
     </div>
   );
@@ -236,6 +254,14 @@ export function OrgChart({ data, onUpdate }: { data: OrgNode; onUpdate: (d: OrgN
               <label className="block text-sm font-semibold text-gray-700 mb-2">المسمى الوظيفي</label>
               <textarea value={editingNode.title} onChange={(e) => setEditingNode({ ...editingNode, title: e.target.value })} className="w-full border-2 border-gray-200 rounded-xl p-3 text-sm outline-none focus:border-blue-500 focus:ring-2 focus:ring-blue-50 resize-none transition" rows={3} autoFocus/>
             </div>
+            <div className="mb-4">
+              <label className="block text-sm font-semibold text-gray-700 mb-2">محاذاة النص</label>
+              <div className="flex gap-2 bg-gray-100 p-1 rounded-xl w-fit">
+                <button onClick={() => setEditingNode({ ...editingNode, textAlign: 'right' })} className={`px-4 py-1.5 rounded-lg text-sm transition ${editingNode.textAlign === 'right' ? 'bg-white shadow font-bold text-blue-600' : 'text-gray-600 hover:bg-gray-200'}`}>يمين</button>
+                <button onClick={() => setEditingNode({ ...editingNode, textAlign: 'center' })} className={`px-4 py-1.5 rounded-lg text-sm transition ${(!editingNode.textAlign || editingNode.textAlign === 'center') ? 'bg-white shadow font-bold text-blue-600' : 'text-gray-600 hover:bg-gray-200'}`}>توسيط</button>
+                <button onClick={() => setEditingNode({ ...editingNode, textAlign: 'left' })} className={`px-4 py-1.5 rounded-lg text-sm transition ${editingNode.textAlign === 'left' ? 'bg-white shadow font-bold text-blue-600' : 'text-gray-600 hover:bg-gray-200'}`}>يسار</button>
+              </div>
+            </div>
             <div className="mb-6">
               <label className="block text-sm font-semibold text-gray-700 mb-3">اللون</label>
               <div className="flex flex-wrap gap-2.5">
@@ -243,7 +269,7 @@ export function OrgChart({ data, onUpdate }: { data: OrgNode; onUpdate: (d: OrgN
                   <button key={p.key} onClick={() => setEditingNode({ ...editingNode, color: p.key })} style={{ backgroundColor: p.bg }} className={`w-10 h-10 rounded-full border-4 transition-all shadow-sm ${editingNode.color === p.key ? 'border-blue-500 scale-110 shadow-md' : 'border-white hover:scale-105'}`} title={p.label}/>
                 ))}
               </div>
-              <div className="mt-3 px-4 py-2.5 rounded-xl text-sm font-semibold text-center shadow-sm" dir="rtl" style={{ backgroundColor: getClr(editingNode.color).bg, color: getClr(editingNode.color).text }}>
+              <div className="mt-3 px-4 py-2.5 rounded-xl text-sm font-semibold shadow-sm" dir="rtl" style={{ backgroundColor: getClr(editingNode.color).bg, color: getClr(editingNode.color).text, textAlign: editingNode.textAlign || 'center' }}>
                 {editingNode.title || '—'}
               </div>
             </div>

@@ -103,3 +103,41 @@
 .org-chart-wrapper .text-\[13px\] {
   font-size: calc(13px + var(--font-size-offset, 0px)) !important;
 }
+
+/* Custom Box sizes */
+.org-node-box {
+  min-width: var(--box-width, 140px) !important;
+  max-width: calc(var(--box-width, 140px) * 1.3) !important;
+  padding: var(--box-padding, 8px) 12px !important;
+}
+.org-node-box.size-lg {
+  min-width: calc(var(--box-width, 140px) * 1.2) !important;
+  max-width: calc(var(--box-width, 140px) * 1.5) !important;
+  padding: calc(var(--box-padding, 8px) + 4px) 16px !important;
+}
+.org-node-box.size-sm {
+  min-width: calc(var(--box-width, 140px) * 0.7) !important;
+  max-width: calc(var(--box-width, 140px) * 0.9) !important;
+  padding: calc(var(--box-padding, 8px) - 2px) 8px !important;
+}
+
+/* Arrowheads */
+.show-arrows .org-li::before,
+.show-arrows .org-li::after {
+  position: absolute;
+}
+.show-arrows .org-ul::before {
+  /* Arrow on the vertical line dropping to children */
+}
+
+/* Adding an arrow at the bottom of the vertical line dropping to children */
+.show-arrows .org-ul::after {
+  content: '';
+  position: absolute;
+  top: 22px; /* just before the line ends */
+  left: 50%;
+  transform: translateX(-50%);
+  border-width: 6px 4px 0 4px;
+  border-style: solid;
+  border-color: var(--line-color, #374151) transparent transparent transparent;
+}

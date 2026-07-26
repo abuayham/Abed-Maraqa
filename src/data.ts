@@ -8,6 +8,7 @@ export interface OrgNode {
   rightStaff?: OrgNode[];  // connected via solid line from RIGHT side (like مساعد رئيس الجامعة)
   leftSibling?: OrgNode;   // same level connected with solid horizontal line on left (like مجلس الجامعة)
   dashedDown?: boolean;    // dashed vertical line going down to this node
+  textAlign?: 'right' | 'center' | 'left';
 }
 
 export const initialData: OrgNode = {
