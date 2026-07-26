@@ -138,6 +138,13 @@ export default function FlowChart({ initialNodes, initialEdges, onSave }: { init
   const [edges, setEdges] = useState<Edge[]>(initialEdges);
   const [editingNode, setEditingNode] = useState<Node | null>(null);
 
+  const updateEditingNode = (updatedNode: Node) => {
+    setEditingNode(updatedNode);
+    const newNodes = nodes.map(n => n.id === updatedNode.id ? updatedNode : n);
+    setNodes(newNodes);
+    onSave(newNodes, edges);
+  };
+
   const nodeTypes = useMemo(() => ({ orgNode: CustomNode }), []);
   
   const edgeTypes = useMemo(() => ({
@@ -349,21 +356,21 @@ export default function FlowChart({ initialNodes, initialEdges, onSave }: { init
             </div>
             <div className="mb-4">
               <label className="block text-sm font-semibold text-gray-700 mb-2">المسمى الوظيفي</label>
-              <textarea value={editingNode.data.title as string} onChange={(e) => setEditingNode({ ...editingNode, data: { ...editingNode.data, title: e.target.value } })} className="w-full border-2 border-gray-200 rounded-xl p-3 text-sm outline-none focus:border-blue-500 focus:ring-2 focus:ring-blue-50 resize-none transition" rows={3} autoFocus/>
+              <textarea value={editingNode.data.title as string} onChange={(e) => updateEditingNode({ ...editingNode, data: { ...editingNode.data, title: e.target.value } })} className="w-full border-2 border-gray-200 rounded-xl p-3 text-sm outline-none focus:border-blue-500 focus:ring-2 focus:ring-blue-50 resize-none transition" rows={3} autoFocus/>
             </div>
             <div className="mb-4">
               <label className="block text-sm font-semibold text-gray-700 mb-2">محاذاة النص</label>
               <div className="flex gap-2 bg-gray-100 p-1 rounded-xl w-fit">
-                <button onClick={() => setEditingNode({ ...editingNode, data: { ...editingNode.data, textAlign: 'right' } })} className={`px-4 py-1.5 rounded-lg text-sm transition ${editingNode.data.textAlign === 'right' ? 'bg-white shadow font-bold text-blue-600' : 'text-gray-600 hover:bg-gray-200'}`}>يمين</button>
-                <button onClick={() => setEditingNode({ ...editingNode, data: { ...editingNode.data, textAlign: 'center' } })} className={`px-4 py-1.5 rounded-lg text-sm transition ${(!editingNode.data.textAlign || editingNode.data.textAlign === 'center') ? 'bg-white shadow font-bold text-blue-600' : 'text-gray-600 hover:bg-gray-200'}`}>توسيط</button>
-                <button onClick={() => setEditingNode({ ...editingNode, data: { ...editingNode.data, textAlign: 'left' } })} className={`px-4 py-1.5 rounded-lg text-sm transition ${editingNode.data.textAlign === 'left' ? 'bg-white shadow font-bold text-blue-600' : 'text-gray-600 hover:bg-gray-200'}`}>يسار</button>
+                <button onClick={() => updateEditingNode({ ...editingNode, data: { ...editingNode.data, textAlign: 'right' } })} className={`px-4 py-1.5 rounded-lg text-sm transition ${editingNode.data.textAlign === 'right' ? 'bg-white shadow font-bold text-blue-600' : 'text-gray-600 hover:bg-gray-200'}`}>يمين</button>
+                <button onClick={() => updateEditingNode({ ...editingNode, data: { ...editingNode.data, textAlign: 'center' } })} className={`px-4 py-1.5 rounded-lg text-sm transition ${(!editingNode.data.textAlign || editingNode.data.textAlign === 'center') ? 'bg-white shadow font-bold text-blue-600' : 'text-gray-600 hover:bg-gray-200'}`}>توسيط</button>
+                <button onClick={() => updateEditingNode({ ...editingNode, data: { ...editingNode.data, textAlign: 'left' } })} className={`px-4 py-1.5 rounded-lg text-sm transition ${editingNode.data.textAlign === 'left' ? 'bg-white shadow font-bold text-blue-600' : 'text-gray-600 hover:bg-gray-200'}`}>يسار</button>
               </div>
             </div>
             <div className="mb-6">
               <label className="block text-sm font-semibold text-gray-700 mb-3">اللون</label>
               <div className="flex flex-wrap gap-2.5">
                 {PALETTE.map((p: any) => (
-                  <button key={p.key} onClick={() => setEditingNode({ ...editingNode, data: { ...editingNode.data, color: p.key } })} style={{ backgroundColor: p.bg }} className={`w-10 h-10 rounded-full border-4 transition-all shadow-sm ${editingNode.data.color === p.key ? 'border-blue-500 scale-110 shadow-md' : 'border-white hover:scale-105'}`} title={p.label}/>
+                  <button key={p.key} onClick={() => updateEditingNode({ ...editingNode, data: { ...editingNode.data, color: p.key } })} style={{ backgroundColor: p.bg }} className={`w-10 h-10 rounded-full border-4 transition-all shadow-sm ${editingNode.data.color === p.key ? 'border-blue-500 scale-110 shadow-md' : 'border-white hover:scale-105'}`} title={p.label}/>
                 ))}
               </div>
             </div>
@@ -378,13 +385,7 @@ export default function FlowChart({ initialNodes, initialEdges, onSave }: { init
               }} className="px-4 py-2 text-sm bg-red-50 text-red-600 rounded-xl hover:bg-red-100 transition font-medium flex items-center gap-1"><Trash2 size={15}/> حذف</button>
               
               <div className="flex gap-2">
-                <button onClick={() => setEditingNode(null)} className="px-4 py-2 text-sm border-2 border-gray-200 text-gray-600 rounded-xl hover:bg-gray-50 transition font-medium">إلغاء</button>
-                <button onClick={() => {
-                  const newNodes = nodes.map(n => n.id === editingNode.id ? editingNode : n);
-                  setNodes(newNodes);
-                  onSave(newNodes, edges);
-                  setEditingNode(null);
-                }} className="px-5 py-2 text-sm bg-blue-600 text-white rounded-xl hover:bg-blue-700 transition flex items-center gap-2 font-semibold shadow"><Check size={15}/> حفظ التعديلات</button>
+                <button onClick={() => setEditingNode(null)} className="px-8 py-2 text-sm bg-blue-600 text-white rounded-xl hover:bg-blue-700 transition font-bold shadow-md flex items-center gap-2"><Check size={16}/> تم</button>
               </div>
             </div>
           </div>
