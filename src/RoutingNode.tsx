@@ -11,15 +11,15 @@ const RoutingNode = ({ selected }: any) => {
       <div className="absolute w-8 h-8 -left-4 -top-4 bg-transparent cursor-grab rounded-full hover:bg-gray-400/20 transition-colors z-[-1]" />
       
       {/* مقابض التوصيل الشفافة في المنتصف */}
-      <Handle type="target" position={Position.Top} className="!w-3 !h-3 !opacity-0 !border-0 !bg-transparent" />
-      <Handle type="target" position={Position.Left} id="left-target" className="!w-3 !h-3 !opacity-0 !border-0 !bg-transparent" />
-      <Handle type="target" position={Position.Right} id="right-target" className="!w-3 !h-3 !opacity-0 !border-0 !bg-transparent" />
-      <Handle type="target" position={Position.Bottom} id="bottom-target" className="!w-3 !h-3 !opacity-0 !border-0 !bg-transparent" />
+      <Handle type="target" position={Position.Top} className="!w-6 !h-6 !opacity-0 !border-0 !bg-transparent !z-0" />
+      <Handle type="target" position={Position.Left} id="left-target" className="!w-6 !h-6 !opacity-0 !border-0 !bg-transparent !z-0" />
+      <Handle type="target" position={Position.Right} id="right-target" className="!w-6 !h-6 !opacity-0 !border-0 !bg-transparent !z-0" />
+      <Handle type="target" position={Position.Bottom} id="bottom-target" className="!w-6 !h-6 !opacity-0 !border-0 !bg-transparent !z-0" />
       
-      <Handle type="source" position={Position.Bottom} className="!w-3 !h-3 !opacity-0 !border-0 !bg-transparent" />
-      <Handle type="source" position={Position.Left} id="left-source" className="!w-3 !h-3 !opacity-0 !border-0 !bg-transparent" />
-      <Handle type="source" position={Position.Right} id="right-source" className="!w-3 !h-3 !opacity-0 !border-0 !bg-transparent" />
-      <Handle type="source" position={Position.Top} id="top-source" className="!w-3 !h-3 !opacity-0 !border-0 !bg-transparent" />
+      <Handle type="source" position={Position.Bottom} className="!w-6 !h-6 !opacity-0 !border-0 !bg-transparent !z-10" />
+      <Handle type="source" position={Position.Left} id="left-source" className="!w-6 !h-6 !opacity-0 !border-0 !bg-transparent !z-10" />
+      <Handle type="source" position={Position.Right} id="right-source" className="!w-6 !h-6 !opacity-0 !border-0 !bg-transparent !z-10" />
+      <Handle type="source" position={Position.Top} id="top-source" className="!w-6 !h-6 !opacity-0 !border-0 !bg-transparent !z-10" />
     </div>
   );
 };
