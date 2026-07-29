@@ -163,6 +163,74 @@ const ReactFlowChartInner = () => {
     takeSnapshot();
   }, [takeSnapshot]);
 
+  const onNodeDragStop = useCallback((event: any, node: Node) => {
+    if (node.type === 'routingNode') {
+      const nodeEl = document.querySelector(`[data-id="${node.id}"]`) as HTMLElement;
+      if (nodeEl) {
+        const originalEvents = nodeEl.style.pointerEvents;
+        nodeEl.style.pointerEvents = 'none';
+        const elements = document.elementsFromPoint(event.clientX, event.clientY);
+        nodeEl.style.pointerEvents = originalEvents;
+
+        const edgePath = elements.find(el => el.classList.contains('react-flow__edge-path'));
+        if (edgePath) {
+           const edgeGroup = edgePath.closest('.react-flow__edge');
+           const edgeId = edgeGroup?.getAttribute('data-id');
+           
+           if (edgeId) {
+              setEdges(eds => {
+                 const edge = eds.find(e => e.id === edgeId);
+                 if (!edge) return eds;
+                 
+                 const newEds = eds.filter(e => e.id !== edgeId);
+                 newEds.push({
+                    id: getId(),
+                    source: edge.source,
+                    sourceHandle: edge.sourceHandle,
+                    target: node.id,
+                    targetHandle: 'top-target',
+                    type: edge.type || 'step',
+                    style: edge.style,
+                    animated: edge.animated
+                 });
+                 newEds.push({
+                    id: getId(),
+                    source: node.id,
+                    sourceHandle: 'bottom-source',
+                    target: edge.target,
+                    targetHandle: edge.targetHandle,
+                    type: edge.type || 'step',
+                    style: edge.style,
+                    animated: edge.animated
+                 });
+                 
+                 // Make the routing node a child of the edge's source so it moves with it
+                 setNodes(nds => {
+                    const sourceNode = nds.find(n => n.id === edge.source);
+                    if (!sourceNode) return nds;
+                    return nds.map(n => {
+                       if (n.id === node.id) {
+                          return {
+                             ...n,
+                             parentId: sourceNode.id,
+                             position: {
+                                x: n.position.x - sourceNode.position.x,
+                                y: n.position.y - sourceNode.position.y
+                             }
+                          };
+                       }
+                       return n;
+                    });
+                 });
+                 
+                 return newEds;
+              });
+           }
+        }
+      }
+    }
+  }, [setEdges]);
+
   const onConnect = useCallback(
     (params: Connection | Edge) => {
       takeSnapshot();
@@ -324,6 +392,7 @@ const ReactFlowChartInner = () => {
           onNodeClick={onNodeClick}
           onEdgeClick={onEdgeClick}
           onNodeDragStart={onNodeDragStart}
+          onNodeDragStop={onNodeDragStop}
           nodeTypes={nodeTypes}
           fitView
           dir="ltr" // React Flow works best with LTR coordinates internally
