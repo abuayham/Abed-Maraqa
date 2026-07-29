@@ -144,13 +144,15 @@ const ReactFlowChartInner = () => {
     const refHeight = referenceNode.measured?.height || referenceNode.style?.height || 60;
     const refColor = referenceNode.data.color;
     const refFontSize = referenceNode.data.fontSize;
+    const refTextColor = referenceNode.data.textColor;
+    const refIsBold = referenceNode.data.isBold;
 
     setNodes(nds => nds.map(n => {
       if (n.selected && n.id !== referenceNode.id && n.type !== 'group' && n.type !== 'routingNode') {
         return {
           ...n,
           style: { ...n.style, width: refWidth, height: refHeight },
-          data: { ...n.data, color: refColor, fontSize: refFontSize }
+          data: { ...n.data, color: refColor, fontSize: refFontSize, textColor: refTextColor, isBold: refIsBold }
         };
       }
       return n;
@@ -225,7 +227,9 @@ const ReactFlowChartInner = () => {
             ...node.data,
             label: updatedData.title,
             color: updatedData.color,
-            fontSize: updatedData.fontSize
+            fontSize: updatedData.fontSize,
+            textColor: updatedData.textColor,
+            isBold: updatedData.isBold
           };
         }
         return node;
@@ -390,6 +394,27 @@ const ReactFlowChartInner = () => {
               </div>
             </div>
 
+            <div className="mb-6 flex gap-4">
+              <div className="flex-1">
+                <label className="block text-sm font-semibold text-gray-700 mb-2">لون الخط</label>
+                <input 
+                  type="color" 
+                  id="edit-node-text-color" 
+                  defaultValue={selectedNode.data.textColor as string || (['green-light', 'orange-light', 'blue-light', 'peach'].includes(selectedNode.data.color as string) ? '#1f2937' : '#ffffff')}
+                  className="w-full h-10 p-1 rounded border border-gray-300"
+                />
+              </div>
+              <div className="flex items-center gap-2 mt-7">
+                <input 
+                  type="checkbox" 
+                  id="edit-node-is-bold" 
+                  defaultChecked={selectedNode.data.isBold !== false} 
+                  className="w-5 h-5 text-blue-600 rounded border-gray-300 focus:ring-blue-500" 
+                />
+                <label htmlFor="edit-node-is-bold" className="text-sm font-semibold text-gray-700 cursor-pointer">خط عريض (Bold)</label>
+              </div>
+            </div>
+
             <div className="flex justify-between border-t pt-4">
               <button 
                 onClick={handleDeleteNode}
@@ -409,7 +434,9 @@ const ReactFlowChartInner = () => {
                     const title = (document.getElementById('edit-node-title') as HTMLInputElement).value;
                     const color = (document.getElementById('edit-node-color') as HTMLSelectElement).value;
                     const fontSize = parseInt((document.getElementById('edit-node-font-size') as HTMLInputElement).value);
-                    handleUpdateNode({ title, color, fontSize });
+                    const textColor = (document.getElementById('edit-node-text-color') as HTMLInputElement).value;
+                    const isBold = (document.getElementById('edit-node-is-bold') as HTMLInputElement).checked;
+                    handleUpdateNode({ title, color, fontSize, textColor, isBold });
                   }}
                   className="px-6 py-2 bg-blue-600 text-white font-bold rounded-lg hover:bg-blue-700"
                 >
