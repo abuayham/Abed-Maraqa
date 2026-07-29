@@ -5,7 +5,7 @@ const RoutingNode = ({ selected }: any) => {
   return (
     <div className={`relative w-0 h-0 flex items-center justify-center z-50`}>
       {/* النقطة المرئية التي تختفي عند التصدير */}
-      <div className={`hide-on-export absolute w-2 h-2 rounded-full ${selected ? 'bg-blue-600 ring-4 ring-blue-300' : 'bg-black'}`} />
+      <div className={`hide-on-export absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-3 h-3 rounded-full ${selected ? 'bg-blue-600 ring-4 ring-blue-300' : 'bg-black'}`} />
       
       {/* منطقة مخفية أوسع لتسهيل النقر والسحب */}
       <div className="absolute w-8 h-8 -left-4 -top-4 bg-transparent cursor-grab rounded-full hover:bg-gray-400/20 transition-colors z-[-1]" />
