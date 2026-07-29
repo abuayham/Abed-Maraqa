@@ -10,7 +10,6 @@
 }
 
 /* ===== ORG TREE CSS ===== */
-/* LTR-based layout for correct tree rendering */
 .org-ul {
   display: flex;
   padding-top: 28px;
@@ -55,12 +54,12 @@
 .org-li::before {
   right: 50%;
   border-top: var(--line-thickness, 2px) var(--node-line-style, solid) var(--line-color, #374151);
+  border-right: var(--line-thickness, 2px) var(--node-line-style, solid) var(--line-color, #374151);
 }
 
 .org-li::after {
   left: 50%;
   border-top: var(--line-thickness, 2px) var(--node-line-style, solid) var(--line-color, #374151);
-  border-left: var(--line-thickness, 2px) var(--node-line-style, solid) var(--line-color, #374151);
 }
 
 /* Only child - no connector needed */
@@ -72,21 +71,19 @@
   display: none;
 }
 
-/* First child: remove the left outgoing segment */
-.org-li:first-child::before {
-  display: none;
-}
+/* RTL layout fixes */
+/* First child (physically right-most): remove its right half (which is ::after because left:50% means right half) */
 .org-li:first-child::after {
-  border-radius: 5px 0 0 0;
+  display: none;
 }
 
-/* Last child: remove the right outgoing segment */
-.org-li:last-child::after {
+/* Last child (physically left-most): remove its left half (which is ::before because right:50% means left half) */
+.org-li:last-child::before {
   display: none;
 }
-.org-li:last-child::before {
-  border-right: var(--line-thickness, 2px) var(--node-line-style, solid) var(--line-color, #374151);
-  border-radius: 0 5px 0 0;
+/* We must restore the vertical drop for the last child on ::after */
+.org-li:last-child::after {
+  border-left: var(--line-thickness, 2px) var(--node-line-style, solid) var(--line-color, #374151);
 }
 
 /* Base font sizes based on offset */
@@ -104,27 +101,12 @@
   font-size: calc(13px + var(--font-size-offset, 0px)) !important;
 }
 
-/* Arrowheads */
-.show-arrows .org-li::before,
-.show-arrows .org-li::after {
-  position: absolute;
-}
-.show-arrows .org-ul::before {
-  /* Arrow on the vertical line dropping to children */
-}
 
-/* Adding an arrow at the bottom of the vertical line dropping to children */
-.show-arrows .org-ul::after {
-  content: '';
-  position: absolute;
-  top: 22px; /* just before the line ends */
-  left: 50%;
-  transform: translateX(-50%);
-  border-width: 6px 4px 0 4px;
-  border-style: solid;
-  border-color: var(--line-color, #374151) transparent transparent transparent;
-}
 
 .view-mode .plus-btn, .view-mode .edge-plus-btn, .view-mode .react-flow__handle {
   display: none !important;
+}
+
+.react-flow__edge-path {
+  shape-rendering: crispEdges !important;
 }

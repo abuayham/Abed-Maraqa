@@ -1,0 +1,109 @@
+Created At: 2026-07-27T20:40:32Z
+Completed At: 2026-07-27T20:40:32Z
+File Path: `file:///c:/Users/a0zay/Downloads/qou/qouu/src/OrgChart.tsx`
+Total Lines: 553
+Total Bytes: 35439
+Showing lines 150 to 250
+The following code has been modified to include a line number before every line, in the format: <line_number>: <original_line>. Please note that any changes targeting the original code should remove the line number, colon, and leading space.
+150:   const [isDragOver, setIsDragOver] = useState(false);
+151:   return (
+152:     <div
+153:       className={`absolute top-7 bottom-0 w-8 z-[150] cursor-pointer flex justify-center ${position === 'right' ? '-right-4' : '-left-4'}`}
+154:       onDragOver={(e) => { e.preventDefault(); e.dataTransfer.dropEffect = 'move'; setIsDragOver(true); }}
+155:       onDragLeave={() => setIsDragOver(false)}
+156:       onDrop={(e) => {
+157:         e.preventDefault();
+158:         setIsDragOver(false);
+159:         const draggedId = e.dataTransfer.getData('text/plain');
+160:         if (draggedId) actions.onMove(draggedId, parentId, 'child', insertIndex);
+161:       }}
+162:     >
+163:       <div className={`w-2 rounded-full transition-colors ${isDragOver ? 'bg-blue-400 opacity-80' : 'bg-transparent'}`} />
+164:     </div>
+165:   );
+166: }
+167: 
+168: // ==================== RECURSIVE TREE NODE ====================
+169: function TreeNode({ node, actions, activeMenuId, setActiveMenuId, parentId, index, isLast }: { node: OrgNode; actions: Actions; activeMenuId: string | null; setActiveMenuId: (id: string | null) => void; parentId?: string; index?: number; isLast?: boolean }) {
+170:   const hasChildren = (node.children?.length ?? 0) > 0;
+171:   return (
+172:     <li className="org-li relative group/node" style={{ '--node-line-style': node.lineStyle || 'solid', '--offset-x': `${node.offset?.x ?? 0}px`, '--offset-y': `${node.offset?.y ?? 0}px` } as any}>
+173:       {parentId !== undefined && index !== undefined && (
+174:         <SiblingDropZone parentId={parentId} insertIndex={index} actions={actions} position="right" />
+175:       )}
+176:       
+177:       <div style={{ display: 'grid', gridTemplateColumns: '1fr auto 1fr', alignItems: 'center', width: '100%' }}>
+178:         
+179:         {/* Column 1: Right Siblings (Physical Right -> RTL flex-end) */}
+180:         <div style={{ display: 'flex', justifyContent: 'flex-end', alignItems: 'center' }}>
+181:           {node.rightSiblings?.map(sibling => (
+182:             <div key={sibling.id} className="relative" style={{ display: 'flex', alignItems: 'center', top: `${sibling.offset?.y ?? 0}px` }}>
+183:               <NodeBox node={sibling} actions={actions} allowStaff={true} size="md" isActive={activeMenuId === sibling.id} onToggleMenu={(e) => { e.stopPropagation(); setActiveMenuId(sibling.id); }} />
+184:               <div style={{ width: Math.max(0, 40 + (sibling.offset?.x ?? 0)), height: 'var(--line-thickness, 2px)', borderTop: sibling.lineStyle === 'dashed' ? 'var(--line-thickness, 2px) dashed var(--line-color, #374151)' : 'none', background: sibling.lineStyle === 'dashed' ? 'transparent' : 'var(--line-color, #374151)', flexShrink: 0 }} />
+185:             </div>
+186:           ))}
+187:         </div>
+188: 
+189:         {/* Column 2: Main Node (Center) */}
+190:         <div className="relative z-10 flex justify-center" style={{ left: `${node.offset?.x ?? 0}px`, top: `${node.offset?.y ?? 0}px` }}>
+191:           <NodeBox node={node} actions={actions} size="md" allowStaff={true} isActive={activeMenuId === node.id} onToggleMenu={(e) => { e.stopPropagation(); setActiveMenuId(node.id); }} />
+192:         </div>
+193: 
+194:         {/* Column 3: Left Siblings (Physical Left -> RTL flex-start) */}
+195:         <div style={{ display: 'flex', justifyContent: 'flex-start', alignItems: 'center' }}>
+196:           {node.leftSiblings?.map(sibling => (
+197:             <div key={sibling.id} className="relative" style={{ display: 'flex', alignItems: 'center', top: `${sibling.offset?.y ?? 0}px` }}>
+198:               <div style={{ width: Math.max(0, 40 - (sibling.offset?.x ?? 0)), height: 'var(--line-thickness, 2px)', borderTop: sibling.lineStyle === 'dashed' ? 'var(--line-thickness, 2px) dashed var(--line-color, #374151)' : 'none', background: sibling.lineStyle === 'dashed' ? 'transparent' : 'var(--line-color, #374151)', flexShrink: 0 }} />
+199:               <NodeBox node={sibling} actions={actions} allowStaff={true} size="md" isActive={activeMenuId === sibling.id} onToggleMenu={(e) => { e.stopPropagation(); setActiveMenuId(sibling.id); }} />
+200:             </div>
+201:           ))}
+202:         </div>
+203: 
+204:       </div>
+205:       
+206:       {parentId !== undefined && index !== undefined && isLast && (
+207:         <SiblingDropZone parentId={parentId} insertIndex={index + 1} actions={actions} position="left" />
+208:       )}
+209: 
+210:       {/* 4. CHILDREN (RECURSIVE) */}
+211:       {hasChildren && (() => {
+212:         const offsetX = node.offset?.x ?? 0;
+213:         const offsetY = node.offset?.y ?? 0;
+214:         return (
+215:           <ul className="org-ul">
+216:             {/* SVG Orthogonal Router from Parent to Children's Bar */}
+217:             <div style={{ position: 'absolute', left: '50%', top: 0, width: 0, height: 28, zIndex: 0, overflow: 'visible' }}>
+218:               <svg style={{ overflow: 'visible', position: 'absolute', width: 1, height: 1 }}>
+219:                 <path 
+220:                   d={`M ${offsetX} ${offsetY} V ${14 + Math.max(0, offsetY)} H 0 V 28`} 
+221:                   stroke="var(--line-color, #374151)" 
+222:                   strokeWidth="var(--line-thickness, 2px)" 
+223:                   fill="none" 
+224:                 />
+225:               </svg>
+226:               {/* Arrow */}
+227:               <div className="children-arrow" style={{ position: 'absolute', top: '22px', left: 0, transform: 'translateX(-50%)', borderWidth: '6px 4px 0 4px', borderStyle: 'solid', borderColor: 'var(--line-color, #374151) transparent transparent transparent', display: 'var(--show-arrows, block)' }} />
+228:             </div>
+229:             
+230:             {node.children!.map((child, i) => (
+231:               <TreeNode key={child.id} node={child} actions={actions} activeMenuId={activeMenuId} setActiveMenuId={setActiveMenuId} parentId={node.id} index={i} isLast={i === node.children!.length - 1} />
+232:             ))}
+233:           </ul>
+234:         );
+235:       })()}
+236:     </li>
+237:   );
+238: }
+239: 
+240: function PresidentSection({ root, president, actions, activeMenuId, setActiveMenuId }: {
+241:   root: OrgNode; president: OrgNode; actions: Actions; activeMenuId: string | null; setActiveMenuId: (id: string | null) => void;
+242: }) {
+243:   const STAFF_H   = 48;   
+244:   const STAFF_GAP = 12;
+245:   const HLINE     = 36;   
+246: 
+247:   const leftCount  = president.leftStaff?.length  ?? 0;
+248:   const rightCount = president.rightStaff?.length ?? 0;
+249:   const trunkH     = Math.max(leftCount, rightCount) * (STAFF_H + STAFF_GAP) + 24;
+250: 
+The above content does NOT show the entire file contents. If you need to view any lines of the file which were not shown to complete your task, call this tool again to view those lines.

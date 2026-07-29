@@ -46,6 +46,12 @@ export const exportToImage = async (_elementId: string) => {
         width: `${width}px`,
         height: `${height}px`,
         transform: `translate(${-minX + padding}px, ${-minY + padding}px) scale(1)`
+      },
+      filter: (node: any) => {
+        if (node?.classList?.contains('hide-on-export')) {
+          return false;
+        }
+        return true;
       }
     });
     saveAs(dataUrl, 'org-chart.png');
