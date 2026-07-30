@@ -36,14 +36,14 @@ const CustomOrgNode = ({ data, selected }: any) => {
         }}
         dir="rtl"
       >
-        <Handle type="target" position={Position.Top} className="hide-on-export w-3 h-3 bg-gray-400 border-2 border-white" />
+        <Handle type="target" position={Position.Top} id="top-target" className="hide-on-export w-3 h-3 bg-gray-400 border-2 border-white" />
         <Handle type="target" position={Position.Left} id="left-target" className="hide-on-export w-3 h-3 bg-gray-400 border-2 border-white" />
         <Handle type="target" position={Position.Right} id="right-target" className="hide-on-export w-3 h-3 bg-gray-400 border-2 border-white" />
         <Handle type="target" position={Position.Bottom} id="bottom-target" className="hide-on-export w-3 h-3 bg-gray-400 border-2 border-white" />
         
         <div>{data.label}</div>
 
-        <Handle type="source" position={Position.Bottom} className="hide-on-export w-3 h-3 bg-blue-500 border-2 border-white" />
+        <Handle type="source" position={Position.Bottom} id="bottom-source" className="hide-on-export w-3 h-3 bg-blue-500 border-2 border-white" />
         <Handle type="source" position={Position.Left} id="left-source" className="hide-on-export w-3 h-3 bg-blue-500 border-2 border-white" />
         <Handle type="source" position={Position.Right} id="right-source" className="hide-on-export w-3 h-3 bg-blue-500 border-2 border-white" />
         <Handle type="source" position={Position.Top} id="top-source" className="hide-on-export w-3 h-3 bg-blue-500 border-2 border-white" />
