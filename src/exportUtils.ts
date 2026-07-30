@@ -2,20 +2,20 @@ import { toPng } from 'html-to-image';
 import { saveAs } from 'file-saver';
 import { Document, Packer, Paragraph, HeadingLevel, AlignmentType } from 'docx';
 import * as XLSX from 'xlsx';
+import jsPDF from 'jspdf';
 import type { Node, Edge } from '@xyflow/react';
 
-// --- Export to Image ---
-export const exportToImage = async (_elementId: string) => {
+// --- Export to Image & PDF ---
+const getA4ExportData = async (): Promise<{ dataUrl: string, orientation: 'p' | 'l', targetWidth: number, targetHeight: number } | null> => {
   const el = document.querySelector('.react-flow__viewport') as HTMLElement;
   if (!el) {
     alert('لم يتم العثور على الرسمة!');
-    return;
+    return null;
   }
   
   try {
-    // 1. Calculate bounding box of all nodes
     const nodes = document.querySelectorAll('.react-flow__node');
-    if (nodes.length === 0) return;
+    if (nodes.length === 0) return null;
     
     let minX = Infinity, minY = Infinity, maxX = -Infinity, maxY = -Infinity;
     nodes.forEach(n => {
@@ -37,15 +37,36 @@ export const exportToImage = async (_elementId: string) => {
     const width = maxX - minX + padding * 2;
     const height = maxY - minY + padding * 2;
 
+    let targetWidth = width;
+    let targetHeight = height;
+    const A4_RATIO = 1.41421356;
+
+    if (width >= height) {
+      if (width / height > A4_RATIO) {
+        targetHeight = width / A4_RATIO;
+      } else {
+        targetWidth = height * A4_RATIO;
+      }
+    } else {
+      if (height / width > A4_RATIO) {
+        targetWidth = height / A4_RATIO;
+      } else {
+        targetHeight = width * A4_RATIO;
+      }
+    }
+
+    const offsetX = (targetWidth - width) / 2;
+    const offsetY = (targetHeight - height) / 2;
+
     const dataUrl = await toPng(el, { 
       quality: 1, 
       backgroundColor: '#f8f9fa',
-      width,
-      height,
+      width: targetWidth,
+      height: targetHeight,
       style: {
-        width: `${width}px`,
-        height: `${height}px`,
-        transform: `translate(${-minX + padding}px, ${-minY + padding}px) scale(1)`
+        width: `${targetWidth}px`,
+        height: `${targetHeight}px`,
+        transform: `translate(${-minX + padding + offsetX}px, ${-minY + padding + offsetY}px) scale(1)`
       },
       filter: (node: any) => {
         if (node?.classList?.contains('hide-on-export')) {
@@ -54,10 +75,41 @@ export const exportToImage = async (_elementId: string) => {
         return true;
       }
     });
-    saveAs(dataUrl, 'org-chart.png');
+    
+    return { dataUrl, orientation: targetWidth > targetHeight ? 'l' : 'p', targetWidth, targetHeight };
   } catch (err) {
-    console.error('Failed to export image', err);
-    alert('حدث خطأ أثناء تصدير الصورة');
+    console.error('Failed to generate export data', err);
+    alert('حدث خطأ أثناء معالجة الرسمة');
+    return null;
+  }
+};
+
+export const exportToImage = async (_elementId: string) => {
+  const result = await getA4ExportData();
+  if (result) {
+    saveAs(result.dataUrl, 'org-chart.png');
+  }
+};
+
+export const exportToPdf = async () => {
+  const result = await getA4ExportData();
+  if (!result) return;
+  
+  try {
+    const pdf = new jsPDF({
+      orientation: result.orientation,
+      unit: 'mm',
+      format: 'a4'
+    });
+    
+    const pdfWidth = result.orientation === 'p' ? 210 : 297;
+    const pdfHeight = result.orientation === 'p' ? 297 : 210;
+    
+    pdf.addImage(result.dataUrl, 'PNG', 0, 0, pdfWidth, pdfHeight);
+    pdf.save('org-chart.pdf');
+  } catch (err) {
+    console.error('Failed to export PDF', err);
+    alert('حدث خطأ أثناء تصدير PDF');
   }
 };
 

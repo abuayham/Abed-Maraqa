@@ -1,7 +1,11 @@
-import { Network } from 'lucide-react';
+import { useState } from 'react';
+import { Network, LayoutTemplate, MousePointer2 } from 'lucide-react';
 import { ReactFlowChart } from './ReactFlowChart';
+import { AutoLayoutChart } from './AutoLayoutChart';
 
 function App() {
+  const [activeTab, setActiveTab] = useState<'free' | 'auto'>('free');
+
   return (
     <div className="min-h-screen bg-gray-50 flex flex-col font-sans" dir="rtl">
       {/* Header */}
@@ -17,14 +21,40 @@ function App() {
             </div>
           </div>
           
-          <div className="flex items-center gap-4">
+          <div className="flex items-center gap-6">
+            
+            {/* Tabs */}
+            <div className="flex bg-gray-100 p-1 rounded-lg">
+              <button
+                onClick={() => setActiveTab('free')}
+                className={`flex items-center gap-2 px-4 py-1.5 rounded-md text-sm font-bold transition-colors ${
+                  activeTab === 'free' ? 'bg-white text-blue-600 shadow-sm' : 'text-gray-500 hover:text-gray-700'
+                }`}
+              >
+                <MousePointer2 size={16} />
+                التصميم الحر
+              </button>
+              <button
+                onClick={() => setActiveTab('auto')}
+                className={`flex items-center gap-2 px-4 py-1.5 rounded-md text-sm font-bold transition-colors ${
+                  activeTab === 'auto' ? 'bg-white text-blue-600 shadow-sm' : 'text-gray-500 hover:text-gray-700'
+                }`}
+              >
+                <LayoutTemplate size={16} />
+                التصميم التلقائي
+              </button>
+            </div>
+
+            <div className="w-px h-8 bg-gray-200"></div>
+
             <div className="text-sm font-bold text-gray-600">إضافة:</div>
             
             {/* Draggable Rectangle */}
             <div 
-              className="cursor-grab bg-white border-2 border-blue-500 rounded-md px-4 py-2 text-sm font-bold shadow-sm hover:shadow-md transition-shadow text-gray-800 flex items-center gap-2"
-              draggable
+              className={`bg-white border-2 border-blue-500 rounded-md px-4 py-2 text-sm font-bold flex items-center gap-2 ${activeTab === 'free' ? 'cursor-grab shadow-sm hover:shadow-md' : 'opacity-50 cursor-not-allowed'}`}
+              draggable={activeTab === 'free'}
               onDragStart={(e) => {
+                if (activeTab !== 'free') return;
                 e.dataTransfer.setData('application/reactflow', 'orgNode');
                 e.dataTransfer.setData('application/nodecolor', 'blue-light');
                 e.dataTransfer.setData('application/nodetitle', 'مسمى وظيفي جديد');
@@ -37,10 +67,11 @@ function App() {
 
             {/* Draggable Routing Node */}
             <div 
-              className="cursor-grab bg-white border-2 border-gray-500 rounded-full w-10 h-10 flex items-center justify-center shadow-sm hover:shadow-md transition-shadow"
-              draggable
+              className={`bg-white border-2 border-gray-500 rounded-full w-10 h-10 flex items-center justify-center ${activeTab === 'free' ? 'cursor-grab shadow-sm hover:shadow-md' : 'opacity-50 cursor-not-allowed'}`}
+              draggable={activeTab === 'free'}
               title="مفصل أسهم (لتفرع الخطوط)"
               onDragStart={(e) => {
+                if (activeTab !== 'free') return;
                 e.dataTransfer.setData('application/reactflow', 'routingNode');
                 e.dataTransfer.effectAllowed = 'move';
               }}
@@ -53,8 +84,8 @@ function App() {
       </header>
 
       {/* Main Content Area */}
-      <main className="flex-1 w-full h-[calc(100vh-64px)]">
-        <ReactFlowChart />
+      <main className="flex-1 w-full h-[calc(100vh-64px)] relative">
+        {activeTab === 'free' ? <ReactFlowChart /> : <AutoLayoutChart />}
       </main>
     </div>
   );

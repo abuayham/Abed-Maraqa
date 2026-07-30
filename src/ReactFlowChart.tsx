@@ -17,8 +17,8 @@ import CustomOrgNode from './CustomOrgNode';
 import RoutingNode from './RoutingNode';
 import AdjustableStepEdge from './AdjustableStepEdge';
 
-import { exportToImage, exportToWord } from './exportUtils';
-import { Image as ImageIcon, FileText, Undo2, Redo2, Group as GroupIcon, Ungroup, PaintBucket, MoveHorizontal, MoveVertical } from 'lucide-react';
+import { exportToImage, exportToWord, exportToPdf } from './exportUtils';
+import { Image as ImageIcon, FileText, File, Undo2, Redo2, Group as GroupIcon, Ungroup, PaintBucket, MoveHorizontal, MoveVertical } from 'lucide-react';
 
 import { initialNodes, initialEdges } from './initialOrgData';
 
@@ -474,11 +474,18 @@ const ReactFlowChartInner = () => {
         </div>
 
         <button 
+          onClick={() => exportToPdf()} 
+          className="flex items-center gap-2 px-4 py-2 bg-red-600 text-white rounded-lg shadow hover:bg-red-700 font-bold transition-colors"
+        >
+          <File size={18} />
+          تصدير PDF (A4)
+        </button>
+        <button 
           onClick={() => exportToImage('react-flow')} 
           className="flex items-center gap-2 px-4 py-2 bg-blue-600 text-white rounded-lg shadow hover:bg-blue-700 font-bold transition-colors"
         >
           <ImageIcon size={18} />
-          تصدير صورة
+          تصدير صورة (A4)
         </button>
         <button 
           onClick={() => exportToWord(nodes, edges)} 
