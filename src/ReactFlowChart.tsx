@@ -285,6 +285,58 @@ const ReactFlowChartInner = () => {
     setSelectedEdge(edge);
   }, []);
 
+  const onEdgeDoubleClick = useCallback((event: React.MouseEvent, edge: Edge) => {
+    event.stopPropagation();
+    takeSnapshot();
+    
+    if (!reactFlowInstance) return;
+
+    const position = reactFlowInstance.screenToFlowPosition({
+      x: event.clientX,
+      y: event.clientY,
+    });
+
+    const newRoutingNodeId = getId();
+    const newRoutingNode: Node = {
+      id: newRoutingNodeId,
+      type: 'routingNode',
+      position,
+      data: { label: 'مفصل' },
+    };
+
+    setNodes((nds) => nds.concat(newRoutingNode));
+    
+    setEdges((eds) => {
+      const edgeToSplit = eds.find(e => e.id === edge.id);
+      if (!edgeToSplit) return eds;
+      
+      const filteredEds = eds.filter(e => e.id !== edge.id);
+      return [
+        ...filteredEds,
+        {
+          id: getId(),
+          source: edgeToSplit.source,
+          sourceHandle: edgeToSplit.sourceHandle,
+          target: newRoutingNodeId,
+          targetHandle: 'top-target',
+          type: edgeToSplit.type || 'step',
+          style: edgeToSplit.style,
+          animated: edgeToSplit.animated
+        },
+        {
+          id: getId(),
+          source: newRoutingNodeId,
+          sourceHandle: 'bottom-source',
+          target: edgeToSplit.target,
+          targetHandle: edgeToSplit.targetHandle,
+          type: edgeToSplit.type || 'step',
+          style: edgeToSplit.style,
+          animated: edgeToSplit.animated
+        }
+      ];
+    });
+  }, [reactFlowInstance, setEdges, setNodes, takeSnapshot]);
+
   const handleUpdateNode = (updatedData: any) => {
     takeSnapshot();
     setNodes((nds) =>
@@ -390,6 +442,7 @@ const ReactFlowChartInner = () => {
           onDragOver={onDragOver}
           onNodeClick={onNodeClick}
           onEdgeClick={onEdgeClick}
+          onEdgeDoubleClick={onEdgeDoubleClick}
           onNodeDragStart={onNodeDragStart}
           onNodeDragStop={onNodeDragStop}
           nodeTypes={nodeTypes}

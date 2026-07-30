@@ -72,17 +72,6 @@ const FlowSidebar = () => {
           مدير مركز / أمين (خوخي)
         </div>
 
-        <div className="border-t pt-2 mt-2">
-          <div 
-            className="w-full flex items-center justify-center p-2 rounded-md cursor-grab shadow-sm border-2 border-gray-300 hover:scale-105 transition hover:bg-gray-100"
-            onDragStart={(event) => onDragStart(event, 'routingNode', '', 'نقطة تفرع')}
-            draggable
-            title="استخدم هذا المفصل لتفريع الأسهم (يندمج مع الخطوط كأنه جزء منها)"
-          >
-            <div className="w-6 h-[2px] bg-black ml-2"></div>
-            <span className="font-bold text-sm text-gray-700">مفصل أسهم (مخفي)</span>
-          </div>
-        </div>
       </div>
     </aside>
   );
