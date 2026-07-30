@@ -502,15 +502,31 @@ const ReactFlowChartInner = () => {
           <button onClick={() => handleAlignAndDistribute('vertical')} className="px-3 py-2 hover:bg-gray-100 text-purple-700 font-bold flex gap-1 items-center" title="محاذاة المستطيلات المحددة عمودياً وتوزيع المسافات بالتساوي"><MoveVertical size={18} /> محاذاة عمودية</button>
         </div>
 
+        <div className="flex items-center gap-2 bg-white px-3 py-2 rounded-lg border shadow-sm">
+          <label htmlFor="export-quality" className="text-sm font-bold text-gray-700">دقة التصدير:</label>
+          <select id="export-quality" className="text-sm border border-gray-300 rounded px-2 py-1 outline-none focus:ring-1 focus:ring-blue-500" defaultValue="2">
+            <option value="1">عادية (1x)</option>
+            <option value="2">عالية (2x) - ينصح بها</option>
+            <option value="3">فائقة الدقة (3x)</option>
+            <option value="4">4K (4x) - للمطبوعات الضخمة</option>
+          </select>
+        </div>
+
         <button 
-          onClick={() => exportToPdf()} 
+          onClick={() => {
+            const scale = parseInt((document.getElementById('export-quality') as HTMLSelectElement)?.value || '2');
+            exportToPdf(scale);
+          }} 
           className="flex items-center gap-2 px-4 py-2 bg-red-600 text-white rounded-lg shadow hover:bg-red-700 font-bold transition-colors"
         >
           <File size={18} />
           تصدير PDF (A4)
         </button>
         <button 
-          onClick={() => exportToImage('react-flow')} 
+          onClick={() => {
+            const scale = parseInt((document.getElementById('export-quality') as HTMLSelectElement)?.value || '2');
+            exportToImage(scale);
+          }} 
           className="flex items-center gap-2 px-4 py-2 bg-blue-600 text-white rounded-lg shadow hover:bg-blue-700 font-bold transition-colors"
         >
           <ImageIcon size={18} />

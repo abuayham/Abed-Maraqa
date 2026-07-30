@@ -6,7 +6,7 @@ import jsPDF from 'jspdf';
 import type { Node, Edge } from '@xyflow/react';
 
 // --- Export to Image & PDF ---
-const getA4ExportData = async (): Promise<{ dataUrl: string, orientation: 'p' | 'l', targetWidth: number, targetHeight: number } | null> => {
+const getA4ExportData = async (scale: number = 2): Promise<{ dataUrl: string, orientation: 'p' | 'l', targetWidth: number, targetHeight: number } | null> => {
   const el = document.querySelector('.react-flow__viewport') as HTMLElement;
   if (!el) {
     alert('لم يتم العثور على الرسمة!');
@@ -59,7 +59,8 @@ const getA4ExportData = async (): Promise<{ dataUrl: string, orientation: 'p' | 
     const offsetY = (targetHeight - height) / 2;
 
     const dataUrl = await toPng(el, { 
-      quality: 1, 
+      quality: 1,
+      pixelRatio: scale, 
       backgroundColor: '#f8f9fa',
       width: targetWidth,
       height: targetHeight,
@@ -84,15 +85,15 @@ const getA4ExportData = async (): Promise<{ dataUrl: string, orientation: 'p' | 
   }
 };
 
-export const exportToImage = async (_elementId: string) => {
-  const result = await getA4ExportData();
+export const exportToImage = async (scale: number = 2) => {
+  const result = await getA4ExportData(scale);
   if (result) {
     saveAs(result.dataUrl, 'org-chart.png');
   }
 };
 
-export const exportToPdf = async () => {
-  const result = await getA4ExportData();
+export const exportToPdf = async (scale: number = 2) => {
+  const result = await getA4ExportData(scale);
   if (!result) return;
   
   try {
