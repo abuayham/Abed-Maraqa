@@ -166,8 +166,12 @@ const ReactFlowChartInner = () => {
     // The first selected node in the queue is the reference
     const referenceNodeId = selectionQueue.find(id => selectedNodes.some(n => n.id === id));
     const referenceNode = selectedNodes.find(n => n.id === referenceNodeId) || selectedNodes[0];
-    const refWidth = referenceNode.style?.width || referenceNode.measured?.width || 160;
-    const refHeight = referenceNode.style?.height || referenceNode.measured?.height || 60;
+    const rawRefWidth = referenceNode.style?.width ?? referenceNode.measured?.width ?? 160;
+    const rawRefHeight = referenceNode.style?.height ?? referenceNode.measured?.height ?? 60;
+    
+    const parsedWidth = typeof rawRefWidth === 'number' ? rawRefWidth : parseFloat(rawRefWidth as string) || 160;
+    const parsedHeight = typeof rawRefHeight === 'number' ? rawRefHeight : parseFloat(rawRefHeight as string) || 60;
+
     const refColor = referenceNode.data.color;
     const refFontSize = referenceNode.data.fontSize;
     const refTextColor = referenceNode.data.textColor;
@@ -177,9 +181,9 @@ const ReactFlowChartInner = () => {
       if (n.selected && n.id !== referenceNode.id && n.type !== 'group' && n.type !== 'routingNode') {
         return {
           ...n,
-          width: Number(refWidth),
-          height: Number(refHeight),
-          style: { ...n.style, width: refWidth, height: refHeight },
+          width: parsedWidth,
+          height: parsedHeight,
+          style: { ...n.style, width: parsedWidth, height: parsedHeight },
           data: { ...n.data, color: refColor, fontSize: refFontSize, textColor: refTextColor, isBold: refIsBold }
         };
       }
