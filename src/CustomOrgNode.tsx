@@ -21,18 +21,20 @@ const CustomOrgNode = ({ data, selected }: any) => {
       <NodeResizer 
         color="#3b82f6"
         isVisible={selected} 
-        minWidth={120} 
+        minWidth={50} 
         minHeight={50} 
         handleClassName="hide-on-export !w-3 !h-3 !rounded-full !bg-white !border-2 !border-blue-500" 
         lineClassName="hide-on-export !border-blue-500" 
       />
       <div 
-        className={`group shadow-lg border-[3px] rounded-lg p-3 text-center w-full h-full min-w-[160px] min-h-[60px] flex items-center justify-center transition-all ${selected ? 'ring-4 ring-blue-500 border-white' : 'border-white hover:shadow-xl'}`}
+        className={`group shadow-lg border-[3px] rounded-lg p-2 text-center w-full h-full flex flex-col items-center justify-center transition-all overflow-hidden break-words ${selected ? 'ring-4 ring-blue-500 border-white' : 'border-white hover:shadow-xl'}`}
         style={{ 
           backgroundColor: colorStyles.bg, 
           color: data.textColor || colorStyles.text, 
           fontSize: `${fontSize}px`,
-          fontWeight: data.isBold === false ? 'normal' : 'bold'
+          fontWeight: data.isBold === false ? 'normal' : 'bold',
+          minWidth: '50px',
+          minHeight: '50px'
         }}
         dir="rtl"
       >
@@ -41,7 +43,9 @@ const CustomOrgNode = ({ data, selected }: any) => {
         <Handle type="target" position={Position.Right} id="right-target" className="hide-on-export w-3 h-3 bg-gray-400 border-2 border-white" />
         <Handle type="target" position={Position.Bottom} id="bottom-target" className="hide-on-export w-3 h-3 bg-gray-400 border-2 border-white" />
         
-        <div>{data.label}</div>
+        <div className="w-full h-full flex items-center justify-center overflow-hidden text-ellipsis leading-tight">
+          {data.label}
+        </div>
 
         <Handle type="source" position={Position.Bottom} id="bottom-source" className="hide-on-export w-3 h-3 bg-blue-500 border-2 border-white" />
         <Handle type="source" position={Position.Left} id="left-source" className="hide-on-export w-3 h-3 bg-blue-500 border-2 border-white" />
