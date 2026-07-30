@@ -60,6 +60,19 @@ const ReactFlowChartInner = () => {
 
   const [past, setPast] = useState<{nodes: Node[], edges: Edge[]}[]>([]);
   const [future, setFuture] = useState<{nodes: Node[], edges: Edge[]}[]>([]);
+  
+  const [selectionQueue, setSelectionQueue] = useState<string[]>([]);
+
+  const onSelectionChange = useCallback(({ nodes: selectedNodesList }: { nodes: Node[] }) => {
+    setSelectionQueue(prev => {
+       const currentIds = selectedNodesList.map(n => n.id);
+       const newQueue = prev.filter(id => currentIds.includes(id));
+       currentIds.forEach(id => {
+          if (!newQueue.includes(id)) newQueue.push(id);
+       });
+       return newQueue;
+    });
+  }, []);
 
   const takeSnapshot = useCallback(() => {
     setPast((p) => [...p, { nodes, edges }]);
@@ -142,8 +155,9 @@ const ReactFlowChartInner = () => {
 
     takeSnapshot();
     
-    // The first selected node is the reference
-    const referenceNode = selectedNodes[0];
+    // The first selected node in the queue is the reference
+    const referenceNodeId = selectionQueue.find(id => selectedNodes.some(n => n.id === id));
+    const referenceNode = selectedNodes.find(n => n.id === referenceNodeId) || selectedNodes[0];
     const refWidth = referenceNode.measured?.width || referenceNode.style?.width || 160;
     const refHeight = referenceNode.measured?.height || referenceNode.style?.height || 60;
     const refColor = referenceNode.data.color;
@@ -502,6 +516,7 @@ const ReactFlowChartInner = () => {
           edges={edges}
           onNodesChange={onNodesChange}
           onEdgesChange={onEdgesChange}
+          onSelectionChange={onSelectionChange}
           onConnect={onConnect}
           onInit={setReactFlowInstance}
           onDrop={onDrop}

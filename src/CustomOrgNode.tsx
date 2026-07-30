@@ -27,7 +27,7 @@ const CustomOrgNode = ({ data, selected }: any) => {
         lineClassName="hide-on-export !border-blue-500" 
       />
       <div 
-        className={`group shadow-lg border-[3px] rounded-lg p-1 text-center w-full h-full flex flex-col items-center justify-center transition-all overflow-hidden break-words ${selected ? 'ring-4 ring-blue-500 border-white' : 'border-white hover:shadow-xl'}`}
+        className={`group shadow-lg border-[3px] rounded-lg p-1 text-center w-full h-full flex flex-col items-center justify-center transition-all overflow-hidden break-all min-w-0 min-h-0 ${selected ? 'ring-4 ring-blue-500 border-white' : 'border-white hover:shadow-xl'}`}
         style={{ 
           backgroundColor: colorStyles.bg, 
           color: data.textColor || colorStyles.text, 
@@ -43,7 +43,7 @@ const CustomOrgNode = ({ data, selected }: any) => {
         <Handle type="target" position={Position.Right} id="right-target" className="hide-on-export w-3 h-3 bg-gray-400 border-2 border-white" />
         <Handle type="target" position={Position.Bottom} id="bottom-target" className="hide-on-export w-3 h-3 bg-gray-400 border-2 border-white" />
         
-        <div className="w-full h-full flex items-center justify-center overflow-hidden text-ellipsis leading-tight">
+        <div className="w-full h-full flex items-center justify-center overflow-hidden text-ellipsis leading-tight whitespace-pre-wrap min-w-0 min-h-0">
           {data.label}
         </div>
 
