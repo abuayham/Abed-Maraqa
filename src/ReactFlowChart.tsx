@@ -166,8 +166,8 @@ const ReactFlowChartInner = () => {
     // The first selected node in the queue is the reference
     const referenceNodeId = selectionQueue.find(id => selectedNodes.some(n => n.id === id));
     const referenceNode = selectedNodes.find(n => n.id === referenceNodeId) || selectedNodes[0];
-    const rawRefWidth = referenceNode.style?.width ?? referenceNode.measured?.width ?? 160;
-    const rawRefHeight = referenceNode.style?.height ?? referenceNode.measured?.height ?? 60;
+    const rawRefWidth = referenceNode.width ?? referenceNode.style?.width ?? referenceNode.measured?.width ?? 160;
+    const rawRefHeight = referenceNode.height ?? referenceNode.style?.height ?? referenceNode.measured?.height ?? 60;
     
     const parsedWidth = typeof rawRefWidth === 'number' ? rawRefWidth : parseFloat(rawRefWidth as string) || 160;
     const parsedHeight = typeof rawRefHeight === 'number' ? rawRefHeight : parseFloat(rawRefHeight as string) || 60;
