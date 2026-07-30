@@ -21,20 +21,20 @@ const CustomOrgNode = ({ data, selected }: any) => {
       <NodeResizer 
         color="#3b82f6"
         isVisible={selected} 
-        minWidth={50} 
-        minHeight={50} 
+        minWidth={20} 
+        minHeight={20} 
         handleClassName="hide-on-export !w-3 !h-3 !rounded-full !bg-white !border-2 !border-blue-500" 
         lineClassName="hide-on-export !border-blue-500" 
       />
       <div 
-        className={`group shadow-lg border-[3px] rounded-lg p-2 text-center w-full h-full flex flex-col items-center justify-center transition-all overflow-hidden break-words ${selected ? 'ring-4 ring-blue-500 border-white' : 'border-white hover:shadow-xl'}`}
+        className={`group shadow-lg border-[3px] rounded-lg p-1 text-center w-full h-full flex flex-col items-center justify-center transition-all overflow-hidden break-words ${selected ? 'ring-4 ring-blue-500 border-white' : 'border-white hover:shadow-xl'}`}
         style={{ 
           backgroundColor: colorStyles.bg, 
           color: data.textColor || colorStyles.text, 
           fontSize: `${fontSize}px`,
           fontWeight: data.isBold === false ? 'normal' : 'bold',
-          minWidth: '50px',
-          minHeight: '50px'
+          minWidth: '20px',
+          minHeight: '20px'
         }}
         dir="rtl"
       >
