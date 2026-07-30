@@ -26,8 +26,7 @@ const nodeTypes = {
   routingNode: RoutingNode,
 };
 
-let id = 100;
-const getId = () => `dndnode_${id++}`;
+const getId = () => `dndnode_${Date.now()}_${Math.floor(Math.random() * 10000)}`;
 
 const ReactFlowChartInner = () => {
   const reactFlowWrapper = useRef<HTMLDivElement>(null);
