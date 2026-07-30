@@ -290,11 +290,12 @@ const ReactFlowChartInner = () => {
     }, 250);
   }, []);
 
-  const onEdgeDoubleClick = useCallback((event: React.MouseEvent, edge: Edge) => {
+  const onEdgeContextMenu = useCallback((event: React.MouseEvent, edge: Edge) => {
+    event.preventDefault();
     event.stopPropagation();
     if (edgeClickTimer.current) clearTimeout(edgeClickTimer.current);
     takeSnapshot();
-    setSelectedEdge(null); // Close the edge properties modal if it opened on the first click
+    setSelectedEdge(null); // Close the edge properties modal if it opened
     
     if (!reactFlowInstance) return;
 
@@ -449,7 +450,7 @@ const ReactFlowChartInner = () => {
           onDragOver={onDragOver}
           onNodeClick={onNodeClick}
           onEdgeClick={onEdgeClick}
-          onEdgeDoubleClick={onEdgeDoubleClick}
+          onEdgeContextMenu={onEdgeContextMenu}
           onNodeDragStart={onNodeDragStart}
           onNodeDragStop={onNodeDragStop}
           nodeTypes={nodeTypes}
@@ -470,6 +471,8 @@ const ReactFlowChartInner = () => {
           💡 اسحب المستطيلات من القائمة لإضافتها.
           <br/>
           🔗 اسحب بالماوس من النقاط لربط الأسهم.
+          <br/>
+          🖱️ اضغط بزر الماوس الأيمن (Right Click) على أي سهم لإنشاء نقطة انحناء.
           <br/>
           🖱️ اضغط على المربع لتعديل لونه والنص.
           <br/>
