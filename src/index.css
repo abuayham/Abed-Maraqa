@@ -108,5 +108,5 @@
 }
 
 .react-flow__edge-path {
-  shape-rendering: crispEdges !important;
+  mix-blend-mode: darken;
 }

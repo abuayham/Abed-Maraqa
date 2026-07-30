@@ -452,7 +452,8 @@ const ReactFlowChartInner = () => {
     setEdges((eds) =>
       eds.map((edge) => {
         if (edge.id === selectedEdge?.id) {
-          const style = { ...edge.style, strokeWidth: 2, stroke: '#000' };
+          const strokeWidth = parseInt(updatedData.strokeWidth) || 2;
+          const style = { ...edge.style, strokeWidth, stroke: '#000' };
           if (updatedData.lineStyle === 'dashed') {
             style.strokeDasharray = '5,5';
           } else {
@@ -682,6 +683,11 @@ const ReactFlowChartInner = () => {
             </div>
 
             <div className="mb-4">
+              <label className="block text-sm font-semibold text-gray-700 mb-2">عرض السهم (سماكة الخط)</label>
+              <input type="number" id="edit-edge-width" defaultValue={selectedEdge.style?.strokeWidth || 2} min="1" max="10" className="w-full border border-gray-300 rounded-lg px-4 py-2" />
+            </div>
+
+            <div className="mb-4">
               <label className="block text-sm font-semibold text-gray-700 mb-2">شكل الزاوية والتوجيه</label>
               <select id="edit-edge-type" defaultValue={selectedEdge.type || 'step'} className="w-full border border-gray-300 rounded-lg px-4 py-2">
                 <option value="step">زاوية قائمة (Step)</option>
@@ -713,9 +719,10 @@ const ReactFlowChartInner = () => {
                 <button 
                   onClick={() => {
                     const lineStyle = (document.getElementById('edit-edge-style') as HTMLSelectElement).value;
+                    const strokeWidth = (document.getElementById('edit-edge-width') as HTMLInputElement).value;
                     const type = (document.getElementById('edit-edge-type') as HTMLSelectElement).value;
                     const animated = (document.getElementById('edit-edge-animated') as HTMLInputElement).checked;
-                    handleUpdateEdge({ lineStyle, type, animated });
+                    handleUpdateEdge({ lineStyle, strokeWidth, type, animated });
                   }}
                   className="px-6 py-2 bg-blue-600 text-white font-bold rounded-lg hover:bg-blue-700"
                 >
