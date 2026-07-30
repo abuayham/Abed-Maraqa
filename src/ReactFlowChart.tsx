@@ -17,7 +17,7 @@ import CustomOrgNode from './CustomOrgNode';
 import RoutingNode from './RoutingNode';
 
 import { exportToImage, exportToWord } from './exportUtils';
-import { Image as ImageIcon, FileText, Undo2, Redo2, Group as GroupIcon, Ungroup, PaintBucket } from 'lucide-react';
+import { Image as ImageIcon, FileText, Undo2, Redo2, Group as GroupIcon, Ungroup, PaintBucket, MoveHorizontal, MoveVertical } from 'lucide-react';
 
 import { initialNodes, initialEdges } from './initialOrgData';
 
@@ -157,6 +157,47 @@ const ReactFlowChartInner = () => {
       return n;
     }));
   }, [nodes, takeSnapshot, setNodes]);
+
+  const handleAlignAndDistribute = useCallback((axis: 'horizontal' | 'vertical') => {
+    const selectedNodes = nodes.filter(n => n.selected && n.type === 'orgNode');
+    if (selectedNodes.length < 2) return alert('الرجاء تحديد مستطيلين أو أكثر للمحاذاة');
+    
+    takeSnapshot();
+    
+    if (axis === 'horizontal') {
+      const avgY = selectedNodes.reduce((sum, n) => sum + n.position.y, 0) / selectedNodes.length;
+      if (selectedNodes.length === 2) {
+        setNodes(nds => nds.map(n => selectedNodes.find(sn => sn.id === n.id) ? { ...n, position: { ...n.position, y: avgY } } : n));
+        return;
+      }
+      const sorted = [...selectedNodes].sort((a, b) => a.position.x - b.position.x);
+      const minX = sorted[0].position.x;
+      const maxX = sorted[sorted.length - 1].position.x;
+      const stepX = (maxX - minX) / (sorted.length - 1);
+      
+      setNodes(nds => nds.map(n => {
+        const index = sorted.findIndex(sn => sn.id === n.id);
+        if (index !== -1) return { ...n, position: { x: minX + (stepX * index), y: avgY } };
+        return n;
+      }));
+    } else {
+      const avgX = selectedNodes.reduce((sum, n) => sum + n.position.x, 0) / selectedNodes.length;
+      if (selectedNodes.length === 2) {
+        setNodes(nds => nds.map(n => selectedNodes.find(sn => sn.id === n.id) ? { ...n, position: { ...n.position, x: avgX } } : n));
+        return;
+      }
+      const sorted = [...selectedNodes].sort((a, b) => a.position.y - b.position.y);
+      const minY = sorted[0].position.y;
+      const maxY = sorted[sorted.length - 1].position.y;
+      const stepY = (maxY - minY) / (sorted.length - 1);
+      
+      setNodes(nds => nds.map(n => {
+        const index = sorted.findIndex(sn => sn.id === n.id);
+        if (index !== -1) return { ...n, position: { x: avgX, y: minY + (stepY * index) } };
+        return n;
+      }));
+    }
+  }, [nodes, setNodes, takeSnapshot]);
 
   const onNodeDragStart = useCallback(() => {
     takeSnapshot();
@@ -420,6 +461,11 @@ const ReactFlowChartInner = () => {
 
         <div className="bg-white rounded-lg shadow border flex overflow-hidden">
           <button onClick={handleMatchFormatting} className="px-3 py-2 hover:bg-gray-100 text-green-700 font-bold flex gap-1 items-center" title="نسخ تنسيق وحجم أول وظيفة محددة وتطبيقها على الباقي"><PaintBucket size={18} /> توحيد التنسيق</button>
+        </div>
+
+        <div className="bg-white rounded-lg shadow border flex overflow-hidden">
+          <button onClick={() => handleAlignAndDistribute('horizontal')} className="px-3 py-2 hover:bg-gray-100 text-purple-700 font-bold flex gap-1 items-center border-l" title="محاذاة المستطيلات المحددة على نفس الخط الأفقي وتوزيع المسافات بالتساوي"><MoveHorizontal size={18} /> محاذاة أفقية</button>
+          <button onClick={() => handleAlignAndDistribute('vertical')} className="px-3 py-2 hover:bg-gray-100 text-purple-700 font-bold flex gap-1 items-center" title="محاذاة المستطيلات المحددة عمودياً وتوزيع المسافات بالتساوي"><MoveVertical size={18} /> محاذاة عمودية</button>
         </div>
 
         <button 
