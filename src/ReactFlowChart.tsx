@@ -175,7 +175,7 @@ const ReactFlowChartInner = () => {
       }
       return n;
     }));
-  }, [nodes, takeSnapshot, setNodes]);
+  }, [nodes, takeSnapshot, setNodes, selectionQueue]);
 
   const handleAlignAndDistribute = useCallback((axis: 'horizontal' | 'vertical') => {
     const selectedNodes = nodes.filter(n => n.selected && n.type === 'orgNode');
