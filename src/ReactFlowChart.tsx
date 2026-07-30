@@ -318,7 +318,7 @@ const ReactFlowChartInner = () => {
           source: edgeToSplit.source,
           sourceHandle: edgeToSplit.sourceHandle,
           target: newRoutingNodeId,
-          targetHandle: 'top-target',
+          targetHandle: null,
           type: edgeToSplit.type || 'step',
           style: edgeToSplit.style,
           animated: edgeToSplit.animated
@@ -326,7 +326,7 @@ const ReactFlowChartInner = () => {
         {
           id: getId(),
           source: newRoutingNodeId,
-          sourceHandle: 'bottom-source',
+          sourceHandle: null,
           target: edgeToSplit.target,
           targetHandle: edgeToSplit.targetHandle,
           type: edgeToSplit.type || 'step',
