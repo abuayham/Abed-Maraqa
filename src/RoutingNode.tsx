@@ -3,7 +3,7 @@ import { Handle, Position } from '@xyflow/react';
 
 const RoutingNode = ({ selected }: any) => {
   return (
-    <div className="relative w-4 h-4 flex items-center justify-center bg-transparent z-50 cursor-grab">
+    <div className="relative w-8 h-8 flex items-center justify-center bg-transparent z-50 cursor-grab hover:bg-gray-200/50 rounded-full transition-colors" title="اسحب من هنا للتحريك">
       {/* النقطة المرئية التي تختفي عند التصدير */}
       <div className={`hide-on-export w-3 h-3 rounded-full ${selected ? 'bg-blue-600 ring-4 ring-blue-300' : 'bg-black'}`} />
       
@@ -11,7 +11,7 @@ const RoutingNode = ({ selected }: any) => {
       <Handle 
         type="target" 
         position={Position.Top} 
-        className="!w-8 !h-8 !opacity-0 !border-0 !bg-transparent !z-0 !min-w-0 !min-h-0" 
+        className="!w-4 !h-4 !opacity-0 !border-0 !bg-transparent !z-0 !min-w-0 !min-h-0" 
         style={{ top: '50%', left: '50%', transform: 'translate(-50%, -50%)' }}
       />
       
@@ -19,7 +19,7 @@ const RoutingNode = ({ selected }: any) => {
       <Handle 
         type="source" 
         position={Position.Bottom} 
-        className="!w-4 !h-4 !opacity-0 !border-0 !bg-transparent !z-10 !min-w-0 !min-h-0 cursor-crosshair" 
+        className="!w-2 !h-2 !opacity-0 !border-0 !bg-transparent !z-10 !min-w-0 !min-h-0 cursor-crosshair" 
         style={{ top: '50%', left: '50%', transform: 'translate(-50%, -50%)' }}
       />
     </div>
