@@ -67,9 +67,17 @@ const ReactFlowChartInner = () => {
     setSelectionQueue(prev => {
        const currentIds = selectedNodesList.map(n => n.id);
        const newQueue = prev.filter(id => currentIds.includes(id));
-       currentIds.forEach(id => {
-          if (!newQueue.includes(id)) newQueue.push(id);
+       
+       const newlySelected = selectedNodesList.filter(n => !newQueue.includes(n.id));
+       // Sort newly selected by Y then X (RTL) so drag-select favors top-right
+       newlySelected.sort((a, b) => {
+         if (Math.abs(a.position.y - b.position.y) > 20) {
+           return a.position.y - b.position.y;
+         }
+         return b.position.x - a.position.x;
        });
+
+       newlySelected.forEach(n => newQueue.push(n.id));
        return newQueue;
     });
   }, []);
@@ -158,8 +166,8 @@ const ReactFlowChartInner = () => {
     // The first selected node in the queue is the reference
     const referenceNodeId = selectionQueue.find(id => selectedNodes.some(n => n.id === id));
     const referenceNode = selectedNodes.find(n => n.id === referenceNodeId) || selectedNodes[0];
-    const refWidth = referenceNode.measured?.width || referenceNode.style?.width || 160;
-    const refHeight = referenceNode.measured?.height || referenceNode.style?.height || 60;
+    const refWidth = referenceNode.style?.width || referenceNode.measured?.width || 160;
+    const refHeight = referenceNode.style?.height || referenceNode.measured?.height || 60;
     const refColor = referenceNode.data.color;
     const refFontSize = referenceNode.data.fontSize;
     const refTextColor = referenceNode.data.textColor;
