@@ -177,6 +177,8 @@ const ReactFlowChartInner = () => {
       if (n.selected && n.id !== referenceNode.id && n.type !== 'group' && n.type !== 'routingNode') {
         return {
           ...n,
+          width: Number(refWidth),
+          height: Number(refHeight),
           style: { ...n.style, width: refWidth, height: refHeight },
           data: { ...n.data, color: refColor, fontSize: refFontSize, textColor: refTextColor, isBold: refIsBold }
         };
