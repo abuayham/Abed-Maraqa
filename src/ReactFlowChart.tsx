@@ -15,6 +15,7 @@ import '@xyflow/react/dist/style.css';
 
 import CustomOrgNode from './CustomOrgNode';
 import RoutingNode from './RoutingNode';
+import AdjustableStepEdge from './AdjustableStepEdge';
 
 import { exportToImage, exportToWord } from './exportUtils';
 import { Image as ImageIcon, FileText, Undo2, Redo2, Group as GroupIcon, Ungroup, PaintBucket, MoveHorizontal, MoveVertical } from 'lucide-react';
@@ -24,6 +25,10 @@ import { initialNodes, initialEdges } from './initialOrgData';
 const nodeTypes = {
   orgNode: CustomOrgNode,
   routingNode: RoutingNode,
+};
+
+const edgeTypes = {
+  step: AdjustableStepEdge,
 };
 
 const getId = () => `dndnode_${Date.now()}_${Math.floor(Math.random() * 10000)}`;
@@ -500,6 +505,8 @@ const ReactFlowChartInner = () => {
           onNodeDragStart={onNodeDragStart}
           onNodeDragStop={onNodeDragStop}
           nodeTypes={nodeTypes}
+          edgeTypes={{ ...edgeTypes, adjustable: AdjustableStepEdge }}
+          nodesConnectable={true}
           fitView
           dir="ltr" // React Flow works best with LTR coordinates internally
         >
