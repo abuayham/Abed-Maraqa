@@ -281,13 +281,20 @@ const ReactFlowChartInner = () => {
     setSelectedNode(node);
   }, []);
 
+  const edgeClickTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
+
   const onEdgeClick = useCallback((_: React.MouseEvent, edge: Edge) => {
-    setSelectedEdge(edge);
+    if (edgeClickTimer.current) clearTimeout(edgeClickTimer.current);
+    edgeClickTimer.current = setTimeout(() => {
+      setSelectedEdge(edge);
+    }, 250);
   }, []);
 
   const onEdgeDoubleClick = useCallback((event: React.MouseEvent, edge: Edge) => {
     event.stopPropagation();
+    if (edgeClickTimer.current) clearTimeout(edgeClickTimer.current);
     takeSnapshot();
+    setSelectedEdge(null); // Close the edge properties modal if it opened on the first click
     
     if (!reactFlowInstance) return;
 
