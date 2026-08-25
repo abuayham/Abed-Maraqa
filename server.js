@@ -57,18 +57,17 @@ app.post('/api/upload', upload.array('files'), async (req, res) => {
     console.error('Supabase log error:', err.message);
   }
 
-  // Execute python script
-  console.log('Running python script to regenerate HTML...');
+  // Execute python script in background to prevent timeout
+  console.log('Running python script to regenerate HTML in background...');
   exec('python generate_html_report.py', { cwd: path.join(__dirname, 'public', 'qou') }, async (error, stdout, stderr) => {
     if (error) {
       console.error(`Error executing python script: ${error}`);
-      return res.status(500).json({ error: 'فشل في تحديث التقرير', details: stderr });
+      return; // Can't respond here as response is already sent
     }
     
     console.log(`Python Output: ${stdout}`);
 
     // Upload generated HTML to Supabase
-    let reportUrl = null;
     try {
       const htmlPath = path.join(__dirname, 'public', 'qou', 'تقرير_المتابعة_التفاعلي_v3.html');
       if (fs.existsSync(htmlPath)) {
@@ -84,21 +83,19 @@ app.post('/api/upload', upload.array('files'), async (req, res) => {
         if (uploadError) {
           console.error("Supabase Upload Error:", uploadError.message);
         } else {
-          // Get public URL
-          const { data } = supabase.storage.from('reports').getPublicUrl('interactive_report_v3.html');
-          reportUrl = data.publicUrl;
-          console.log("Successfully uploaded report to Supabase:", reportUrl);
+          console.log("Successfully uploaded report to Supabase in background.");
         }
       }
     } catch (e) {
       console.error("Error during Supabase upload:", e);
     }
+  });
 
-    res.json({ 
-        message: `تم الرفع والمعالجة بنجاح`, 
-        files: fileNames,
-        reportUrl: reportUrl
-    });
+  // Respond immediately so browser doesn't timeout
+  res.json({ 
+      message: `تم رفع ${fileNames.length} ملفات بنجاح. جاري بناء التقرير في الخلفية (قد يستغرق 2-3 دقائق). يرجى العودة لاحقاً وتحديث الصفحة.`, 
+      files: fileNames,
+      reportUrl: null
   });
 });
 
