@@ -32,7 +32,7 @@ export function ReportsTab() {
         if (data.reportUrl) {
             iframeRef.current.src = `${data.reportUrl}?t=${new Date().getTime()}`;
         } else {
-            iframeRef.current.src = `${backendUrl}/qou/تقرير_المتابعة_التفاعلي_v3.html?t=${new Date().getTime()}`;
+            iframeRef.current.src = `${backendUrl}/qou/interactive_report_v3.html?t=${new Date().getTime()}`;
         }
       }
       
@@ -49,8 +49,8 @@ export function ReportsTab() {
 
   const supabaseUrl = import.meta.env.VITE_SUPABASE_URL;
   const initialIframeSrc = supabaseUrl 
-    ? `${supabaseUrl}/storage/v1/object/public/reports/تقرير_المتابعة_التفاعلي_v3.html` 
-    : `${import.meta.env.VITE_BACKEND_URL || 'http://localhost:3001'}/qou/تقرير_المتابعة_التفاعلي_v3.html`;
+    ? `${supabaseUrl}/storage/v1/object/public/reports/interactive_report_v3.html` 
+    : `${import.meta.env.VITE_BACKEND_URL || 'http://localhost:3001'}/qou/interactive_report_v3.html`;
 
   return (
     <div className="flex h-full w-full bg-gray-100 p-4 gap-4">

@@ -76,7 +76,7 @@ app.post('/api/upload', upload.array('files'), async (req, res) => {
         
         const { data: uploadData, error: uploadError } = await supabase.storage
           .from('reports')
-          .upload('تقرير_المتابعة_التفاعلي_v3.html', htmlContent, {
+          .upload('interactive_report_v3.html', htmlContent, {
             contentType: 'text/html',
             upsert: true
           });
@@ -85,7 +85,7 @@ app.post('/api/upload', upload.array('files'), async (req, res) => {
           console.error("Supabase Upload Error:", uploadError.message);
         } else {
           // Get public URL
-          const { data } = supabase.storage.from('reports').getPublicUrl('تقرير_المتابعة_التفاعلي_v3.html');
+          const { data } = supabase.storage.from('reports').getPublicUrl('interactive_report_v3.html');
           reportUrl = data.publicUrl;
           console.log("Successfully uploaded report to Supabase:", reportUrl);
         }
@@ -95,7 +95,7 @@ app.post('/api/upload', upload.array('files'), async (req, res) => {
     }
 
     res.json({ 
-        message: `تم رفع ${fileNames.length} ملف وتحديث التقرير بنجاح!`, 
+        message: `تم الرفع والمعالجة بنجاح`, 
         files: fileNames,
         reportUrl: reportUrl
     });
