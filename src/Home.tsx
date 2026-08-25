@@ -1,4 +1,4 @@
-import React from 'react';
+
 import { Network, FileText } from 'lucide-react';
 
 interface HomeProps {
