@@ -16,6 +16,9 @@ const app = express();
 app.use(cors());
 app.use(express.json());
 
+// Serve the public directory so the frontend can load the HTML report
+app.use('/qou', express.static(path.join(__dirname, 'public', 'qou')));
+
 const supabase = createClient(
   process.env.VITE_SUPABASE_URL || 'https://placeholder.supabase.co',
   process.env.VITE_SUPABASE_ANON_KEY || 'placeholder'
@@ -66,7 +69,7 @@ app.post('/api/upload', upload.array('files'), async (req, res) => {
   });
 });
 
-const PORT = 3001;
+const PORT = process.env.PORT || 3001;
 app.listen(PORT, () => {
-  console.log(`Server running on http://localhost:${PORT}`);
+  console.log(`Server running on port ${PORT}`);
 });

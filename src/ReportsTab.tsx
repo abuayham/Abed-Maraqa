@@ -18,9 +18,11 @@ export function ReportsTab() {
         formData.append('files', files[i]);
     }
 
+    const backendUrl = import.meta.env.VITE_BACKEND_URL || 'http://localhost:3001';
+
     setIsUploading(true);
     try {
-      const response = await fetch('http://localhost:3001/api/upload', {
+      const response = await fetch(`${backendUrl}/api/upload`, {
         method: 'POST',
         body: formData,
       });
@@ -32,7 +34,7 @@ export function ReportsTab() {
       
       // Refresh iframe
       if (iframeRef.current) {
-        iframeRef.current.src = `/qou/تقرير_المتابعة_التفاعلي_v3.html?t=${new Date().getTime()}`;
+        iframeRef.current.src = `${backendUrl}/qou/تقرير_المتابعة_التفاعلي_v3.html?t=${new Date().getTime()}`;
       }
       
       alert(data.message);
@@ -74,7 +76,7 @@ export function ReportsTab() {
         <div className="pt-12 w-full h-full">
             <iframe 
                 ref={iframeRef}
-                src="/qou/تقرير_المتابعة_التفاعلي_v3.html" 
+                src={`${import.meta.env.VITE_BACKEND_URL || 'http://localhost:3001'}/qou/تقرير_المتابعة_التفاعلي_v3.html`} 
                 className="w-full h-full border-0"
                 title="HTML Interface"
             />
