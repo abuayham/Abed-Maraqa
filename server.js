@@ -59,7 +59,8 @@ app.post('/api/upload', upload.array('files'), async (req, res) => {
 
   // Execute python script in background to prevent timeout
   console.log('Running python script to regenerate HTML in background...');
-  exec('python generate_html_report.py', { cwd: path.join(__dirname, 'public', 'qou') }, async (error, stdout, stderr) => {
+  const pythonScript = path.join(__dirname, 'qou', 'generate_html_report.py');
+  exec(`python "${pythonScript}"`, { cwd: path.join(__dirname, 'public', 'qou') }, async (error, stdout, stderr) => {
     if (error) {
       console.error(`Error executing python script: ${error}`);
       return; // Can't respond here as response is already sent
