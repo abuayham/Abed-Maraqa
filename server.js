@@ -22,7 +22,7 @@ app.use('/qou', express.static(path.join(__dirname, 'public', 'qou')));
 
 const supabase = createClient(
   process.env.VITE_SUPABASE_URL || 'https://placeholder.supabase.co',
-  process.env.VITE_SUPABASE_ANON_KEY || 'placeholder'
+  process.env.SUPABASE_SERVICE_KEY || process.env.VITE_SUPABASE_ANON_KEY || 'placeholder'
 );
 
 const storage = multer.diskStorage({
