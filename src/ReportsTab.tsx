@@ -13,15 +13,16 @@ export function ReportsTab() {
   const iframeRef = useRef<HTMLIFrameElement>(null);
 
   const handleFileUpload = async (event: React.ChangeEvent<HTMLInputElement>) => {
-    const file = event.target.files?.[0];
-    if (!file) return;
+    const files = event.target.files;
+    if (!files || files.length === 0) return;
 
-    if (file.type === 'application/pdf' || file.name.endsWith('.pdf')) {
-      const url = URL.createObjectURL(file);
+    const firstFile = files[0];
+    if (firstFile.type === 'application/pdf' || firstFile.name.endsWith('.pdf')) {
+      const url = URL.createObjectURL(firstFile);
       setFileUrl(url);
       setFileType('pdf');
       setExcelData([]);
-    } else if (file.type.includes('spreadsheetml') || file.type.includes('excel') || file.name.endsWith('.xlsx') || file.name.endsWith('.xls')) {
+    } else if (firstFile.type.includes('spreadsheetml') || firstFile.type.includes('excel') || firstFile.name.endsWith('.xlsx') || firstFile.name.endsWith('.xls')) {
       const reader = new FileReader();
       reader.onload = (e) => {
         const data = new Uint8Array(e.target?.result as ArrayBuffer);
@@ -38,12 +39,14 @@ export function ReportsTab() {
         setFileType('excel');
         setFileUrl(null);
       };
-      reader.readAsArrayBuffer(file);
+      reader.readAsArrayBuffer(firstFile);
     }
     
-    // Upload to local server to update the report
+    // Upload ALL files to local server to update the report
     const formData = new FormData();
-    formData.append('file', file);
+    for (let i = 0; i < files.length; i++) {
+        formData.append('files', files[i]);
+    }
 
     setIsUploading(true);
     try {
@@ -91,6 +94,7 @@ export function ReportsTab() {
           <div className="flex gap-2">
             <input 
               type="file" 
+              multiple
               ref={fileInputRef}
               onChange={handleFileUpload} 
               accept=".pdf,.xlsx,.xls" 

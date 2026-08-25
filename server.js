@@ -34,18 +34,19 @@ const storage = multer.diskStorage({
 
 const upload = multer({ storage: storage });
 
-app.post('/api/upload', upload.single('file'), async (req, res) => {
-  if (!req.file) {
-    return res.status(400).json({ error: 'لم يتم استلام أي ملف' });
+app.post('/api/upload', upload.array('files'), async (req, res) => {
+  if (!req.files || req.files.length === 0) {
+    return res.status(400).json({ error: 'لم يتم استلام أي ملفات' });
   }
 
-  const fileName = req.file.filename;
-  console.log(`Received file: ${fileName}`);
+  const fileNames = req.files.map(f => f.filename);
+  console.log(`Received files: ${fileNames.join(', ')}`);
 
   // Optional: Log to Supabase if valid URL provided
   try {
     if (process.env.VITE_SUPABASE_URL && process.env.VITE_SUPABASE_URL !== 'https://placeholder.supabase.co') {
-      const { error } = await supabase.from('uploads_log').insert([{ filename: fileName, upload_time: new Date().toISOString() }]);
+      const logs = fileNames.map(name => ({ filename: name, upload_time: new Date().toISOString() }));
+      const { error } = await supabase.from('uploads_log').insert(logs);
       if (error) console.warn("Supabase log warning:", error.message);
     }
   } catch (err) {
@@ -61,7 +62,7 @@ app.post('/api/upload', upload.single('file'), async (req, res) => {
     }
     
     console.log(`Python Output: ${stdout}`);
-    res.json({ message: 'تم رفع الملف وتحديث التقرير بنجاح!', file: fileName });
+    res.json({ message: `تم رفع ${fileNames.length} ملف وتحديث التقرير بنجاح!`, files: fileNames });
   });
 });
 
