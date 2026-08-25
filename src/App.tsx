@@ -1,10 +1,11 @@
 import { useState } from 'react';
-import { Network, LayoutTemplate, MousePointer2 } from 'lucide-react';
+import { Network, LayoutTemplate, MousePointer2, FileText } from 'lucide-react';
 import { ReactFlowChart } from './ReactFlowChart';
 import { AutoLayoutChart } from './AutoLayoutChart';
+import { ReportsTab } from './ReportsTab';
 
 function App() {
-  const [activeTab, setActiveTab] = useState<'free' | 'auto'>('free');
+  const [activeTab, setActiveTab] = useState<'free' | 'auto' | 'reports'>('free');
 
   return (
     <div className="min-h-screen bg-gray-50 flex flex-col font-sans" dir="rtl">
@@ -42,6 +43,15 @@ function App() {
               >
                 <LayoutTemplate size={16} />
                 التصميم التلقائي
+              </button>
+              <button
+                onClick={() => setActiveTab('reports')}
+                className={`flex items-center gap-2 px-4 py-1.5 rounded-md text-sm font-bold transition-colors ${
+                  activeTab === 'reports' ? 'bg-white text-blue-600 shadow-sm' : 'text-gray-500 hover:text-gray-700'
+                }`}
+              >
+                <FileText size={16} />
+                التقارير والملفات
               </button>
             </div>
 
@@ -85,7 +95,9 @@ function App() {
 
       {/* Main Content Area */}
       <main className="flex-1 w-full h-[calc(100vh-64px)] relative">
-        {activeTab === 'free' ? <ReactFlowChart /> : <AutoLayoutChart />}
+        {activeTab === 'free' && <ReactFlowChart />}
+        {activeTab === 'auto' && <AutoLayoutChart />}
+        {activeTab === 'reports' && <ReportsTab />}
       </main>
     </div>
   );
