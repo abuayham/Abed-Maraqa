@@ -1,6 +1,5 @@
 import { useState, useRef } from 'react';
-import * as XLSX from 'xlsx';
-import { Upload, FileText, FileSpreadsheet, X, Loader2 } from 'lucide-react';
+import { Upload, Loader2 } from 'lucide-react';
 
 export function ReportsTab() {
   const [isUploading, setIsUploading] = useState(false);
