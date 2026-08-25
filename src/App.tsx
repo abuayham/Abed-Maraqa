@@ -22,8 +22,12 @@ function App() {
               <Network size={24} />
             </div>
             <div>
-              <h1 className="text-xl font-bold text-gray-900">نظام إدارة الهياكل التنظيمية (المتقدم)</h1>
-              <p className="text-xs text-gray-500">تصميم حر واحترافي</p>
+              <h1 className="text-xl font-bold text-gray-900">
+                {activeTab === 'reports' ? 'التقرير الشامل للتأخير' : 'نظام إدارة الهياكل التنظيمية (المتقدم)'}
+              </h1>
+              <p className="text-xs text-gray-500">
+                {activeTab === 'reports' ? 'لوحة القيادة التفاعلية' : 'تصميم حر واحترافي'}
+              </p>
             </div>
           </div>
           
@@ -31,24 +35,28 @@ function App() {
             
             {/* Tabs */}
             <div className="flex bg-gray-100 p-1 rounded-lg">
-              <button
-                onClick={() => setActiveTab('free')}
-                className={`flex items-center gap-2 px-4 py-1.5 rounded-md text-sm font-bold transition-colors ${
-                  activeTab === 'free' ? 'bg-white text-blue-600 shadow-sm' : 'text-gray-500 hover:text-gray-700'
-                }`}
-              >
-                <MousePointer2 size={16} />
-                التصميم الحر
-              </button>
-              <button
-                onClick={() => setActiveTab('auto')}
-                className={`flex items-center gap-2 px-4 py-1.5 rounded-md text-sm font-bold transition-colors ${
-                  activeTab === 'auto' ? 'bg-white text-blue-600 shadow-sm' : 'text-gray-500 hover:text-gray-700'
-                }`}
-              >
-                <LayoutTemplate size={16} />
-                التصميم التلقائي
-              </button>
+              {activeTab !== 'reports' && (
+                <>
+                  <button
+                    onClick={() => setActiveTab('free')}
+                    className={`flex items-center gap-2 px-4 py-1.5 rounded-md text-sm font-bold transition-colors ${
+                      activeTab === 'free' ? 'bg-white text-blue-600 shadow-sm' : 'text-gray-500 hover:text-gray-700'
+                    }`}
+                  >
+                    <MousePointer2 size={16} />
+                    التصميم الحر
+                  </button>
+                  <button
+                    onClick={() => setActiveTab('auto')}
+                    className={`flex items-center gap-2 px-4 py-1.5 rounded-md text-sm font-bold transition-colors ${
+                      activeTab === 'auto' ? 'bg-white text-blue-600 shadow-sm' : 'text-gray-500 hover:text-gray-700'
+                    }`}
+                  >
+                    <LayoutTemplate size={16} />
+                    التصميم التلقائي
+                  </button>
+                </>
+              )}
               <button
                 onClick={() => setActiveTab('reports')}
                 className={`flex items-center gap-2 px-4 py-1.5 rounded-md text-sm font-bold transition-colors ${

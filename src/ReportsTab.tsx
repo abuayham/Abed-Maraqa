@@ -3,10 +3,6 @@ import * as XLSX from 'xlsx';
 import { Upload, FileText, FileSpreadsheet, X, Loader2 } from 'lucide-react';
 
 export function ReportsTab() {
-  const [fileUrl, setFileUrl] = useState<string | null>(null);
-  const [fileType, setFileType] = useState<'pdf' | 'excel' | null>(null);
-  const [excelData, setExcelData] = useState<any[]>([]);
-  const [excelColumns, setExcelColumns] = useState<string[]>([]);
   const [isUploading, setIsUploading] = useState(false);
   
   const fileInputRef = useRef<HTMLInputElement>(null);
@@ -15,32 +11,6 @@ export function ReportsTab() {
   const handleFileUpload = async (event: React.ChangeEvent<HTMLInputElement>) => {
     const files = event.target.files;
     if (!files || files.length === 0) return;
-
-    const firstFile = files[0];
-    if (firstFile.type === 'application/pdf' || firstFile.name.endsWith('.pdf')) {
-      const url = URL.createObjectURL(firstFile);
-      setFileUrl(url);
-      setFileType('pdf');
-      setExcelData([]);
-    } else if (firstFile.type.includes('spreadsheetml') || firstFile.type.includes('excel') || firstFile.name.endsWith('.xlsx') || firstFile.name.endsWith('.xls')) {
-      const reader = new FileReader();
-      reader.onload = (e) => {
-        const data = new Uint8Array(e.target?.result as ArrayBuffer);
-        const workbook = XLSX.read(data, { type: 'array' });
-        const firstSheetName = workbook.SheetNames[0];
-        const worksheet = workbook.Sheets[firstSheetName];
-        
-        // Convert to array of objects
-        const json = XLSX.utils.sheet_to_json(worksheet);
-        if (json.length > 0) {
-          setExcelColumns(Object.keys(json[0] as object));
-          setExcelData(json);
-        }
-        setFileType('excel');
-        setFileUrl(null);
-      };
-      reader.readAsArrayBuffer(firstFile);
-    }
     
     // Upload ALL files to local server to update the report
     const formData = new FormData();
@@ -74,15 +44,6 @@ export function ReportsTab() {
           fileInputRef.current.value = '';
       }
     }
-  };
-
-  const closeViewer = () => {
-    if (fileUrl) {
-      URL.revokeObjectURL(fileUrl);
-    }
-    setFileUrl(null);
-    setFileType(null);
-    setExcelData([]);
   };
 
   return (
@@ -119,58 +80,6 @@ export function ReportsTab() {
             />
         </div>
       </div>
-
-      {/* File Viewer Section */}
-      {fileType && (
-        <div className="w-1/2 bg-white rounded-xl shadow-sm border border-gray-200 overflow-hidden flex flex-col">
-          <div className="bg-gray-50 border-b border-gray-200 px-4 py-2 flex justify-between items-center">
-            <div className="flex items-center gap-2">
-              {fileType === 'pdf' ? <FileText className="text-red-500" size={20} /> : <FileSpreadsheet className="text-green-600" size={20} />}
-              <h2 className="font-bold text-gray-700">عارض الملفات</h2>
-            </div>
-            <button onClick={closeViewer} className="text-gray-400 hover:text-red-500 transition-colors">
-              <X size={20} />
-            </button>
-          </div>
-          <div className="flex-1 overflow-auto bg-gray-50 p-2">
-            {fileType === 'pdf' && fileUrl && (
-              <object data={fileUrl} type="application/pdf" className="w-full h-full rounded border border-gray-200 shadow-sm">
-                <div className="flex flex-col items-center justify-center h-full text-gray-500">
-                    <p>متصفحك لا يدعم عرض الـ PDF.</p>
-                    <a href={fileUrl} target="_blank" rel="noreferrer" className="text-blue-500 hover:underline mt-2">اضغط هنا لتحميل الملف</a>
-                </div>
-              </object>
-            )}
-            
-            {fileType === 'excel' && excelData.length > 0 && (
-              <div className="overflow-x-auto h-full">
-                <table className="min-w-full divide-y divide-gray-200 border border-gray-200 shadow-sm rounded-lg overflow-hidden text-sm">
-                  <thead className="bg-gray-100 sticky top-0">
-                    <tr>
-                      {excelColumns.map((col, idx) => (
-                        <th key={idx} className="px-4 py-3 text-right text-xs font-medium text-gray-500 uppercase tracking-wider border-b">
-                          {col}
-                        </th>
-                      ))}
-                    </tr>
-                  </thead>
-                  <tbody className="bg-white divide-y divide-gray-200">
-                    {excelData.map((row, rowIdx) => (
-                      <tr key={rowIdx} className="hover:bg-gray-50">
-                        {excelColumns.map((col, colIdx) => (
-                          <td key={colIdx} className="px-4 py-2 whitespace-nowrap text-gray-700">
-                            {row[col] !== undefined ? String(row[col]) : ''}
-                          </td>
-                        ))}
-                      </tr>
-                    ))}
-                  </tbody>
-                </table>
-              </div>
-            )}
-          </div>
-        </div>
-      )}
     </div>
   );
 }
