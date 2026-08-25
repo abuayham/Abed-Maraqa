@@ -6,6 +6,7 @@ import path from 'path';
 import { createClient } from '@supabase/supabase-js';
 import dotenv from 'dotenv';
 import { fileURLToPath } from 'url';
+import fs from 'fs';
 
 dotenv.config();
 
@@ -58,14 +59,46 @@ app.post('/api/upload', upload.array('files'), async (req, res) => {
 
   // Execute python script
   console.log('Running python script to regenerate HTML...');
-  exec('python generate_html_report.py', { cwd: path.join(__dirname, 'public', 'qou') }, (error, stdout, stderr) => {
+  exec('python generate_html_report.py', { cwd: path.join(__dirname, 'public', 'qou') }, async (error, stdout, stderr) => {
     if (error) {
       console.error(`Error executing python script: ${error}`);
       return res.status(500).json({ error: 'فشل في تحديث التقرير', details: stderr });
     }
     
     console.log(`Python Output: ${stdout}`);
-    res.json({ message: `تم رفع ${fileNames.length} ملف وتحديث التقرير بنجاح!`, files: fileNames });
+
+    // Upload generated HTML to Supabase
+    let reportUrl = null;
+    try {
+      const htmlPath = path.join(__dirname, 'public', 'qou', 'تقرير_المتابعة_التفاعلي_v3.html');
+      if (fs.existsSync(htmlPath)) {
+        const htmlContent = fs.readFileSync(htmlPath);
+        
+        const { data: uploadData, error: uploadError } = await supabase.storage
+          .from('reports')
+          .upload('تقرير_المتابعة_التفاعلي_v3.html', htmlContent, {
+            contentType: 'text/html',
+            upsert: true
+          });
+          
+        if (uploadError) {
+          console.error("Supabase Upload Error:", uploadError.message);
+        } else {
+          // Get public URL
+          const { data } = supabase.storage.from('reports').getPublicUrl('تقرير_المتابعة_التفاعلي_v3.html');
+          reportUrl = data.publicUrl;
+          console.log("Successfully uploaded report to Supabase:", reportUrl);
+        }
+      }
+    } catch (e) {
+      console.error("Error during Supabase upload:", e);
+    }
+
+    res.json({ 
+        message: `تم رفع ${fileNames.length} ملف وتحديث التقرير بنجاح!`, 
+        files: fileNames,
+        reportUrl: reportUrl
+    });
   });
 });
 
