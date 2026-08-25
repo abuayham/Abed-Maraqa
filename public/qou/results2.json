@@ -1,0 +1,90 @@
+{
+  "الإدارة العامة - القدس": {
+    "total_delays": 760,
+    "total_minutes": 18315
+  },
+  "البرنامج الدولي": {
+    "total_delays": 137,
+    "total_minutes": 2030
+  },
+  "العلاقات العامة": {
+    "total_delays": 489,
+    "total_minutes": 12851
+  },
+  "دائرة التخطيط والجودة": {
+    "total_delays": 141,
+    "total_minutes": 800
+  },
+  "شؤون الطلبة": {
+    "total_delays": 77,
+    "total_minutes": 891
+  },
+  "عمادة الدراسات العليا والبحث العلمي_compressed (1)": {
+    "total_delays": 720,
+    "total_minutes": 13549
+  },
+  "عمادة القبول والتسجيل والامتحانات_compressed (1)": {
+    "total_delays": 773,
+    "total_minutes": 18213
+  },
+  "فرع الخليل": {
+    "total_delays": 207,
+    "total_minutes": 5711
+  },
+  "فرع القدس": {
+    "total_delays": 313,
+    "total_minutes": 4395
+  },
+  "فرع بيت لحم": {
+    "total_delays": 369,
+    "total_minutes": 5057
+  },
+  "فرع جنين": {
+    "total_delays": 679,
+    "total_minutes": 23001
+  },
+  "فرع دورا": {
+    "total_delays": 69,
+    "total_minutes": 803
+  },
+  "فرع رام الله والبيرة": {
+    "total_delays": 1389,
+    "total_minutes": 35997
+  },
+  "فرع سلفيت": {
+    "total_delays": 168,
+    "total_minutes": 1530
+  },
+  "فرع طوباس": {
+    "total_delays": 120,
+    "total_minutes": 2413
+  },
+  "فرع طولكرم": {
+    "total_delays": 660,
+    "total_minutes": 16533
+  },
+  "فرع قلقيلية": {
+    "total_delays": 203,
+    "total_minutes": 3618
+  },
+  "فرع نابلس": {
+    "total_delays": 394,
+    "total_minutes": 7731
+  },
+  "فـــرع يــطـــا": {
+    "total_delays": 61,
+    "total_minutes": 443
+  },
+  "مركز التعليم الرقمي": {
+    "total_delays": 549,
+    "total_minutes": 15562
+  },
+  "مركز التعليم المستمر وخدمة المجتمع": {
+    "total_delays": 238,
+    "total_minutes": 5002
+  },
+  "مركز تكنولوجيا المعلومات ": {
+    "total_delays": 613,
+    "total_minutes": 14471
+  }
+}

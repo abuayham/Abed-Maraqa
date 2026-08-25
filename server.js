@@ -23,7 +23,7 @@ const supabase = createClient(
 
 const storage = multer.diskStorage({
   destination: function (req, file, cb) {
-    cb(null, path.join(__dirname, 'qou'));
+    cb(null, path.join(__dirname, 'public', 'qou'));
   },
   filename: function (req, file, cb) {
     // Preserve original filename including Arabic characters
@@ -55,7 +55,7 @@ app.post('/api/upload', upload.array('files'), async (req, res) => {
 
   // Execute python script
   console.log('Running python script to regenerate HTML...');
-  exec('python generate_html_report.py', { cwd: path.join(__dirname, 'qou') }, (error, stdout, stderr) => {
+  exec('python generate_html_report.py', { cwd: path.join(__dirname, 'public', 'qou') }, (error, stdout, stderr) => {
     if (error) {
       console.error(`Error executing python script: ${error}`);
       return res.status(500).json({ error: 'فشل في تحديث التقرير', details: stderr });

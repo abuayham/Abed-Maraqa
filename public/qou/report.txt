@@ -1,0 +1,12 @@
+Best (least mins):
+فـــرع يــطـــا: {'total_delays': 61, 'total_minutes': 443}
+دائرة التخطيط والجودة: {'total_delays': 141, 'total_minutes': 800}
+فرع دورا: {'total_delays': 69, 'total_minutes': 803}
+شؤون الطلبة: {'total_delays': 77, 'total_minutes': 891}
+فرع سلفيت: {'total_delays': 168, 'total_minutes': 1530}
+Worst (most mins):
+فرع طولكرم: {'total_delays': 660, 'total_minutes': 16533}
+عمادة القبول والتسجيل والامتحانات_compressed (1): {'total_delays': 773, 'total_minutes': 18213}
+الإدارة العامة - القدس: {'total_delays': 760, 'total_minutes': 18315}
+فرع جنين: {'total_delays': 679, 'total_minutes': 23001}
+فرع رام الله والبيرة: {'total_delays': 1389, 'total_minutes': 35997}

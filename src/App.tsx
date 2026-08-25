@@ -68,39 +68,43 @@ function App() {
               </button>
             </div>
 
-            <div className="w-px h-8 bg-gray-200"></div>
+            {activeTab !== 'reports' && (
+              <>
+                <div className="w-px h-8 bg-gray-200"></div>
 
-            <div className="text-sm font-bold text-gray-600">إضافة:</div>
-            
-            {/* Draggable Rectangle */}
-            <div 
-              className={`bg-white border-2 border-blue-500 rounded-md px-4 py-2 text-sm font-bold flex items-center gap-2 ${activeTab === 'free' ? 'cursor-grab shadow-sm hover:shadow-md' : 'opacity-50 cursor-not-allowed'}`}
-              draggable={activeTab === 'free'}
-              onDragStart={(e) => {
-                if (activeTab !== 'free') return;
-                e.dataTransfer.setData('application/reactflow', 'orgNode');
-                e.dataTransfer.setData('application/nodecolor', 'blue-light');
-                e.dataTransfer.setData('application/nodetitle', 'مسمى وظيفي جديد');
-                e.dataTransfer.effectAllowed = 'move';
-              }}
-            >
-              <div className="w-3 h-3 bg-blue-300 rounded-sm"></div>
-              وظيفة
-            </div>
+                <div className="text-sm font-bold text-gray-600">إضافة:</div>
+                
+                {/* Draggable Rectangle */}
+                <div 
+                  className={`bg-white border-2 border-blue-500 rounded-md px-4 py-2 text-sm font-bold flex items-center gap-2 ${activeTab === 'free' ? 'cursor-grab shadow-sm hover:shadow-md' : 'opacity-50 cursor-not-allowed'}`}
+                  draggable={activeTab === 'free'}
+                  onDragStart={(e) => {
+                    if (activeTab !== 'free') return;
+                    e.dataTransfer.setData('application/reactflow', 'orgNode');
+                    e.dataTransfer.setData('application/nodecolor', 'blue-light');
+                    e.dataTransfer.setData('application/nodetitle', 'مسمى وظيفي جديد');
+                    e.dataTransfer.effectAllowed = 'move';
+                  }}
+                >
+                  <div className="w-3 h-3 bg-blue-300 rounded-sm"></div>
+                  وظيفة
+                </div>
 
-            {/* Draggable Routing Node */}
-            <div 
-              className={`bg-white border-2 border-gray-500 rounded-full w-10 h-10 flex items-center justify-center ${activeTab === 'free' ? 'cursor-grab shadow-sm hover:shadow-md' : 'opacity-50 cursor-not-allowed'}`}
-              draggable={activeTab === 'free'}
-              title="مفصل أسهم (لتفرع الخطوط)"
-              onDragStart={(e) => {
-                if (activeTab !== 'free') return;
-                e.dataTransfer.setData('application/reactflow', 'routingNode');
-                e.dataTransfer.effectAllowed = 'move';
-              }}
-            >
-              <div className="w-3 h-3 rounded-full bg-gray-400"></div>
-            </div>
+                {/* Draggable Routing Node */}
+                <div 
+                  className={`bg-white border-2 border-gray-500 rounded-full w-10 h-10 flex items-center justify-center ${activeTab === 'free' ? 'cursor-grab shadow-sm hover:shadow-md' : 'opacity-50 cursor-not-allowed'}`}
+                  draggable={activeTab === 'free'}
+                  title="مفصل أسهم (لتفرع الخطوط)"
+                  onDragStart={(e) => {
+                    if (activeTab !== 'free') return;
+                    e.dataTransfer.setData('application/reactflow', 'routingNode');
+                    e.dataTransfer.effectAllowed = 'move';
+                  }}
+                >
+                  <div className="w-3 h-3 rounded-full bg-gray-400"></div>
+                </div>
+              </>
+            )}
             
           </div>
         </div>
