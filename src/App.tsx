@@ -1,11 +1,16 @@
 import { useState } from 'react';
-import { Network, LayoutTemplate, MousePointer2, FileText } from 'lucide-react';
+import { Network, LayoutTemplate, MousePointer2, FileText, Home as HomeIcon } from 'lucide-react';
 import { ReactFlowChart } from './ReactFlowChart';
 import { AutoLayoutChart } from './AutoLayoutChart';
 import { ReportsTab } from './ReportsTab';
+import { Home } from './Home';
 
 function App() {
-  const [activeTab, setActiveTab] = useState<'free' | 'auto' | 'reports'>('free');
+  const [activeTab, setActiveTab] = useState<'home' | 'free' | 'auto' | 'reports'>('home');
+
+  if (activeTab === 'home') {
+    return <Home onSelectTab={setActiveTab} />;
+  }
 
   return (
     <div className="min-h-screen bg-gray-50 flex flex-col font-sans" dir="rtl">
@@ -52,6 +57,14 @@ function App() {
               >
                 <FileText size={16} />
                 التقارير والملفات
+              </button>
+              <div className="w-px h-6 bg-gray-300 mx-1 self-center"></div>
+              <button
+                onClick={() => setActiveTab('home')}
+                className="flex items-center justify-center p-1.5 rounded-md text-gray-500 hover:text-gray-700 hover:bg-gray-200 transition-colors"
+                title="الرئيسية"
+              >
+                <HomeIcon size={18} />
               </button>
             </div>
 
