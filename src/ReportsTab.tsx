@@ -1,16 +1,18 @@
 import { useState, useRef } from 'react';
 import * as XLSX from 'xlsx';
-import { Upload, FileText, FileSpreadsheet, X } from 'lucide-react';
+import { Upload, FileText, FileSpreadsheet, X, Loader2 } from 'lucide-react';
 
 export function ReportsTab() {
   const [fileUrl, setFileUrl] = useState<string | null>(null);
   const [fileType, setFileType] = useState<'pdf' | 'excel' | null>(null);
   const [excelData, setExcelData] = useState<any[]>([]);
   const [excelColumns, setExcelColumns] = useState<string[]>([]);
+  const [isUploading, setIsUploading] = useState(false);
   
   const fileInputRef = useRef<HTMLInputElement>(null);
+  const iframeRef = useRef<HTMLIFrameElement>(null);
 
-  const handleFileUpload = (event: React.ChangeEvent<HTMLInputElement>) => {
+  const handleFileUpload = async (event: React.ChangeEvent<HTMLInputElement>) => {
     const file = event.target.files?.[0];
     if (!file) return;
 
@@ -39,8 +41,35 @@ export function ReportsTab() {
       reader.readAsArrayBuffer(file);
     }
     
-    if (fileInputRef.current) {
-        fileInputRef.current.value = '';
+    // Upload to local server to update the report
+    const formData = new FormData();
+    formData.append('file', file);
+
+    setIsUploading(true);
+    try {
+      const response = await fetch('http://localhost:3001/api/upload', {
+        method: 'POST',
+        body: formData,
+      });
+      
+      const data = await response.json();
+      if (!response.ok) {
+        throw new Error(data.error || 'فشل في رفع الملف');
+      }
+      
+      // Refresh iframe
+      if (iframeRef.current) {
+        iframeRef.current.src = `/qou/تقرير_المتابعة_التفاعلي_v3.html?t=${new Date().getTime()}`;
+      }
+      
+      alert(data.message);
+    } catch (error: any) {
+      alert(`حدث خطأ: ${error.message}. تأكد من تشغيل الخادم المحلي.`);
+    } finally {
+      setIsUploading(false);
+      if (fileInputRef.current) {
+          fileInputRef.current.value = '';
+      }
     }
   };
 
@@ -69,15 +98,17 @@ export function ReportsTab() {
             />
             <button 
               onClick={() => fileInputRef.current?.click()}
-              className="flex items-center gap-2 bg-blue-600 hover:bg-blue-700 text-white px-4 py-1.5 rounded-lg text-sm font-medium transition-colors"
+              disabled={isUploading}
+              className="flex items-center gap-2 bg-blue-600 hover:bg-blue-700 disabled:bg-blue-400 text-white px-4 py-1.5 rounded-lg text-sm font-medium transition-colors"
             >
-              <Upload size={16} />
-              رفع ملف (PDF/Excel)
+              {isUploading ? <Loader2 size={16} className="animate-spin" /> : <Upload size={16} />}
+              {isUploading ? 'جاري التحديث...' : 'رفع ملف وتحديث التقرير'}
             </button>
           </div>
         </div>
         <div className="pt-12 w-full h-full">
             <iframe 
+                ref={iframeRef}
                 src="/qou/تقرير_المتابعة_التفاعلي_v3.html" 
                 className="w-full h-full border-0"
                 title="HTML Interface"
