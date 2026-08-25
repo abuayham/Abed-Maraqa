@@ -69,7 +69,7 @@ app.post('/api/upload', upload.array('files'), async (req, res) => {
 
     // Upload generated HTML to Supabase
     try {
-      const htmlPath = path.join(__dirname, 'public', 'qou', 'تقرير_المتابعة_التفاعلي_v3.html');
+      const htmlPath = path.join(__dirname, 'public', 'qou', 'interactive_report_v3.html');
       if (fs.existsSync(htmlPath)) {
         const htmlContent = fs.readFileSync(htmlPath);
         
